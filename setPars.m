@@ -1,0 +1,256 @@
+%------------------------------------------------------------------------------
+% setGeomPars
+% Purpose: To set default parameters and/or user specified parameters for cover
+%          generation and geometry reconstruction.
+%          See getAdaptiveCover and reconstructGeometry.
+%
+% setGeomPars(); Lists all parameters and their default values in 2D and 3D
+%
+% pars = setGeomPars(dim); Provides a struct with the default parameters in
+%          dim dimensions.
+%
+% pars = setGeomPars(dim,'name1',value1,...'nameN',valueN); Creates a new
+%          struct, but replaces the defualt values of the named parameters by
+%          the given values.
+%
+% pars = setGeomPars(dim,pars,value1,...'nameN',valueN); Updates an existing
+%          parameter structure with new values for the given parameter names. 
+%
+% Example: dim = 2; % Use default values for 2D, but change the number of patches.
+%          pars = setGeomPars(dim,'numPatches',12); 
+%		  	
+% Copyright (c) 2024 Elisabeth Larsson <elisabeth.larsson@it.uu.se>
+%		     Andreas Michael <andreas.michael@it.uu.se>
+%                    Felix W who visited us from school for
+%                    practical worklife experience. 
+%------------------------------------------------------------------------------
+function pars = setGeomPars(varargin)
+%
+% Listing of parameters and default values
+% 
+if nargin == 0 && nargout == 0
+    disp("Parameters required by RBFsolver, options are given between [] and default parameters given between {}:")
+    disp("      dim: Dimension of problem [ positive integer in range [1,3] {2} ]")
+    disp("       geom: Geometry to solve the problem in [ 'cube' of 'ball' {'ball'}]")
+    disp("   prob: Problem to solve [ 'poisson' {'poisson'} ]")
+    disp("          method: Localised RBF numerical method to use [ 'PUM' | 'FD' | {FD} ]")
+    disp("    mode: Extra classification of method used [ {'collocation'} | 'fitted' | 'unfitted']")
+    disp("       bcMode: Way to impose boundary conditions only relevant for fitted method [ 'strong' | {'weak'} ]")
+    disp("            scaling: Flag to scale the LS problem [ 0 | {1} ]")
+    disp("      display: Display flag [ 0 | {1} ]")
+    disp("           mvCentres: Flag to move evaluation points on centre points, irrelevant for collocation [ 0 | {1} ]")
+    disp("           psi: Compactly supported weight function for PUM [ 'bmp' | {'w2'} ]")
+    disp("           phi: Local RBF [ {'phs'} | 'mq' | 'gs' | 'rbfqr' | 'iq']")
+    disp("           ep: Shape parameter (smooth phi) [ positive scalar {0.1} ], order for 'phs' [ positive integer {3} ] ")
+    disp("          pdeg: Degree of polynomial added to basis, p [ positive integer | 0 | {-1} ]")
+    disp("       nodeGen: Scattered node type [ {""halt""} | ""uni"" ]")
+    disp("         debug: Debug flag [ {0} | 1 ]")
+    disp("       display: Display flag [ 0 | {1} ]")
+    disp("suppressOutput: No output flag [ {0} | 1 ]")
+    disp("         noRef: No patch refinement flag [ {0} | 1 ]")
+    disp("    ptchMargin: Margin to ensure cover of all points [ positive scalar {0.01} ]")
+    disp("    nrmValWght: Least squares for normal conditions relative value conditions in the reconstruction [ positive scalar {0.05} ]")
+    disp("          seed: Random number seed for reproducibility [ nonnegative integer {0} ]")
+    disp("  smallWdthTol: Minimum relative width considered when computing width of geometry without annotation of edge [ positive scalar {0.2}/{0.15}]")
+    disp("    neiNumFlip: Size of isolated point cluster to flip between inner and outer surfaces if misplaced [ positive integer {1} ]")
+    disp("        tolBnd: Maximum tolerance allowed when moving points to reconstructed boundary [ positive scalar {1e-9} ]")
+    disp("      maxitBnd: Maximum iterations allowed when moving points to reconstructded boundary [ positive integer {30}/{100} ]")
+    disp("maxNewtonMvTol: Tolerance used to restrict movement to surface in each Newton iteration [ positive scalar {0.01} ]")
+    disp("        neiTol: Tolerance by which patch neighbourhood is chosen to refine or merge [ scalar {0.3}/{0.3}]")
+    disp("    nClosePtch: Number of patches used to compute distance and volume to a point [ positive integer {5}/{12}]")
+    disp("       nPCAmin: Minimum points used to compute patch orientation [ positive integer {12}/{50} | {30}/{70} (no inner, outer, edge in data)]")
+    disp("    maxPtchRef: Maximum relative (to original) number of patches to add when refining [ positive scalar {0.9} ]")
+    disp("  minPtchMerge: Minumum relative (to original) number of patches to add when merging [ positive scalar {0.9} ]")
+    disp("     scaleData: Scale flag [ {0} | 1 ]")
+    disp("     dataScale: Scale factor that is applied to data if scaleData is set [positive scalar {1} ]")
+    return
+end
+%
+%
+%
+fieldName = ["extraTol", 'positiveDoubleZero';
+             "dataTol", 'positiveDoubleZero';
+             "aspectRatio", 'positiveDouble';
+             "nLoc", 'positiveInt';
+             "numPatches", 'positiveInt';
+             "overlap", 'positiveDouble';
+             "ep", 'positiveDoubleZero';
+             "numPtch0", 'positiveInt';
+             "phi", 'phiType';
+             "pdeg", 'positiveMinusOneInt';
+             "nodeGen", 'nodeGenType';
+             "debug", 'flag';
+             "display", 'flag';
+             "suppressOutput", 'flag';
+             "noRef", 'flag',
+             "ptchMargin", 'positiveDouble';
+             "psi", 'phiType';
+             "nrmValWght", 'positiveDouble';
+             "seed", 'positiveIntZero';
+             "smallWdthTol", "positiveDouble";
+             "neiNumFlip", "positiveInt";
+             "tolBnd", 'positiveDouble';
+             "maxitBnd", 'positiveInt';
+             "maxNewtonMvTol", 'positiveDouble'; 
+             "neiTol", 'numeric';
+             "nClosePtch", 'positiveInt';
+             "nPCAmin", 'positiveInt';
+             "maxPtchRef", 'positiveDouble';
+             "minPtchMerge", 'positiveDouble';
+             "scaleData", 'flag';
+             "dataScale", 'positiveDouble']; % The numeric test works for intended doubles
+
+%
+% For all other call signatures, dim is a required first argument
+% 
+if (nargin > 0 & ispositiveInt(varargin{1}))
+    dim = varargin{1};
+
+    % Set default values according to dim
+    if (dim==2)
+        pars.extraTol = 1.5;
+        pars.dataTol = 0.5;
+        pars.aspectRatio = 2;
+        pars.nLoc = 21;
+        pars.numPatches = 24;
+        pars.overlap = 0.5;
+        pars.ep = 0.5;
+        pars.numPtch0 = 10;
+        pars.maxitBnd = 30;
+        pars.nClosePtch = 5;
+        pars.nPCAmin = 12;
+        pars.smallWdthTol = 0.2;
+        
+    elseif(dim==3)
+        pars.extraTol = 2;
+        pars.dataTol = 0.1;
+        pars.aspectRatio = 0.8;
+        pars.nLoc = 165;
+        pars.numPatches = 250;
+        pars.overlap = 0.7;
+        pars.ep = 0.95;
+        pars.numPtch0 = 20;
+        pars.maxitBnd = 50;        
+        pars.nClosePtch = 12;
+        pars.nPCAmin = 25;
+        pars.smallWdthTol = 0.15;
+    else
+        error('Only dim=2 and dim=3 are currently supported')
+    end
+
+    % Set dimension agnostic parameters
+    pars.phi = "mq";
+    pars.pdeg = -1;
+    pars.nodeGen = "halt";
+    pars.debug = 0;
+    pars.display = 1;
+    pars.suppressOutput = 0;
+    pars.noRef = 0;
+    pars.ptchMargin = 0.01;
+    pars.psi = "bump";
+    pars.nrmValWght = 0.05;
+    pars.seed = 0;
+    pars.neiNumFlip = 1;
+    pars.tolBnd = 5e-7;
+    pars.maxNewtonMvTol = 0.01;
+    pars.neiTol = 0.3;
+    pars.maxPtchRef = 0.9;
+    pars.minPtchMerge = 0.9;
+    pars.scaleData = 0;
+    pars.dataScale = 1;
+else
+    error('The parameter dim is required and must take the values 2 or 3')
+end    
+  
+pin = 0; % Indicates that the second parameter pars is not present
+
+% Check if there is a pars parameter
+argnum = 2; % The place where we expect pars
+if (mod(nargin-1,2)==1  & isstruct(varargin{argnum}))
+    % First argument is a pars struct that we want to update
+    for i = 1:size(fieldName,1)
+        if isfield(varargin{argnum},fieldName(i,1))
+
+          typeTest = str2func(strcat('is',fieldName(i,2)));
+          istype = typeTest(varargin{argnum}.(fieldName(i,1)));
+
+          if ~istype
+            error("""%s"" should be of the expected data type.",fieldName(i,1));
+          end
+	  
+          pars.(fieldName(i,1)) = varargin{argnum}.(fieldName(i,1));
+        end
+     end
+     pin = 1; % There was a second argument pars
+end
+  
+  for i = (pin+2):2:nargin
+
+    if ~(isa(varargin{i},'string') | isa(varargin{i},'char'))
+        error("Argument %i should be a string equal to the name of a specific field.",i);
+    end
+    
+    if ismember(varargin{i},fieldName) && nargin > i
+        loc = find(fieldName(:,1) == varargin{i});
+	typeName = fieldName(loc, 2);
+	
+	isfunc = strcat('is',typeName);
+	typeTest = str2func(isfunc);
+
+	istype = typeTest(varargin{i+1});
+	if ~istype
+          error("""%s"" should be of the expected data type.",varargin{i});
+	end
+
+        pars.(fieldName(loc,1)) = varargin{i+1};
+    else
+        error("Field name ""%s"" not available.",num2str(varargin{i}));
+    end
+
+  end  
+end
+
+function isf = isflag(data)
+  isf = (data==0 | data==1);
+end
+
+function ispi = ispositiveInt(data)
+  % Note that floor of a string will work without the first check
+  ispi = isnumeric(data) & all(data==floor(data) & data>0);
+end
+
+function ispi = ispositiveIntZero(data)
+  ispi = isnumeric(data) & all(data==floor(data) & data>=0);
+end
+
+function ispmi = ispositiveMinusOneInt(data)
+  ispmi = isnumeric(data) & all(data==floor(data) & data>=-1);
+end  
+
+function ispd = ispositiveDouble(data)
+  ispd = all(isnumeric(data) & data>0);
+end
+
+function ispd = ispositiveDoubleZero(data)
+  ispd = all(isnumeric(data) & data>=0);
+end
+
+function ispd = ispositiveDoublePlusOne(data)
+  ispd = all(isnumeric(data) & data>=1);
+end
+
+function ispt = isphiType(data)
+  names = {'mq','bump','wendland_c2','phs','tps','iq','r3','gs','Bmq','rbfqr'};
+  ispt = (isa(data,'string') | isa(data,'char'));
+  if ispt
+    ispt = ispt & ismember(data,names);
+  end  
+end
+
+function isngt = isnodeGenType(data)
+  names = {'halt','uni'};
+  isngt = (isa(data,'string') | isa(data,'char'));
+  if isngt
+    isngt = isngt & ismember(data,names);
+  end  
+end
