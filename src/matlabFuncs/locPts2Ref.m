@@ -1,3 +1,12 @@
+% ----------------------------------------------------------------------------------
+% locPts2Ref.m -- Convert coordinates from local coordinate system to 
+%                 reference Patch.
+% Copyright (c) Elisabeth Larsson <eisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function xref = locPts2Ref(H,R,Zk,Rk,x)
   dim = size(x,2);
   %

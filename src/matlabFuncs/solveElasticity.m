@@ -1,3 +1,13 @@
+% ----------------------------------------------------------------------------------
+% solveElasticity.m -- form the derivative approximations based on the
+%                      discretisation in Patches, formulate the sparse 
+%                      least squares system and solve it using sparse QR.
+% Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function [pars, Result] = solveElasticity(geom,X_points,Y_points,Patches,pars)
 
 
@@ -31,29 +41,22 @@ clear X_points Y_points Patches
 lambda = (pars.E*pars.nu)/((1+pars.nu)*(1-2*pars.nu)); 
 mu = pars.E/(2*(1+pars.nu));
 
-% Geometry
-geomname = pars.geomname; 
 mode = pars.mode;
 
 % Select boundary conditions
-switch geomname 
-    case 'diaphragm'
+switch mode
+    case 'manufactured'
+        cell_sz = length(pars.u_exact);
+        bp_i = [min(xi(:,1)) pars.break_points max(xi(:,1))+1e-6];
+        bp_b = [min(xb(:,1)) pars.break_points max(xb(:,1))+1e-6];
+    case 'physical'
         pressure_b = pars.pressure_bottom; % bottom pressure
         pressure_t = pars.pressure_top; % top pressure
-    case 'cuboid'
-        switch mode
-            case 'manufactured'
-                cell_sz = length(pars.u_exact);
-                bp_i = [min(xi(:,1)) pars.break_points max(xi(:,1))+1e-6];
-                bp_b = [min(xb(:,1)) pars.break_points max(xb(:,1))+1e-6];
-            case 'physical'
-                pressure_b = pars.pressure_bottom; % bottom pressure
-                pressure_t = pars.pressure_top; % top pressure
-                body_force.x = pars.body_force.x;
-                body_force.y = pars.body_force.y;
-                body_force.z = pars.body_force.z;
-        end
+        body_force.x = pars.body_force.x;
+        body_force.y = pars.body_force.y;
+        body_force.z = pars.body_force.z;
 end
+
 
 %
 % Construct discretized Elasticity matrices
@@ -63,12 +66,12 @@ end
 pu_i = cylPUWeights(psi,C,R,Z,T,xi,plist_i);
 pu_b = cylPUWeights(psi,C,R,Z,T,xb,plist_b);
 op = 'H'; % compute hessian
-Hi=computeGlobalOp_Bunny(PDEapprox,C,R,Z,T,op,xi,plist_i,pu_i);
+Hi=computeGlobalOp(PDEapprox,C,R,Z,T,op,xi,plist_i,pu_i);
 op = 'J'; % compute jacobian
-Jb=computeGlobalOp_Bunny(PDEapprox,C,R,Z,T,op,xb,plist_b,pu_b);
+Jb=computeGlobalOp(PDEapprox,C,R,Z,T,op,xb,plist_b,pu_b);
 op = '0'; % compute interpolation operators
-Eb=computeGlobalOp_Bunny(PDEapprox,C,R,Z,T,op,xb,plist_b,pu_b);
-Ei=computeGlobalOp_Bunny(PDEapprox,C,R,Z,T,op,xi,plist_i,pu_i);
+Eb=computeGlobalOp(PDEapprox,C,R,Z,T,op,xb,plist_b,pu_b);
+Ei=computeGlobalOp(PDEapprox,C,R,Z,T,op,xi,plist_i,pu_i);
 
 %
 % Compute differrors for each derivative
@@ -89,91 +92,58 @@ ELd = [Eb spalloc(size(Eb,1),size(Eb,2),0) spalloc(size(Eb,1),size(Eb,2),0); ...
 % Note indices of boundary points to apply Boundary Conditions
 %
 
-switch geomname
-    case 'diaphragm'
-%       Get dirichlet points
-        [~, id] = sort(sqrt((xb(:,1) + 50).^2 + (xb(:,2)+60).^2 + (xb(:,3) + 1000).^2));
-        bottom_1 = id(1:120);
 
-        [~, id] = sort((xb(:,1) - 75).^2 + (xb(:,2)+60).^2 + (xb(:,3) + 1000).^2);
-        bottom_2 = id(1:120);
+    switch mode
+        case 'manufactured'
+            syms x1 x2 x3
+            X = [x1 x2 x3];
 
-        [~, id] = sort((xb(:,1) + 60).^2 + (xb(:,2) - 70).^2 + (xb(:,3) + 1000).^2);
-        bottom_3 = id(1:150);
+            for i = 1:cell_sz
+                u_exact{i} = pars.u_exact{i}';
+                epsilon{i} = ([diff(u_exact{i}(1),x1), 0.5*(diff(u_exact{i}(2),x1) + diff(u_exact{i}(1),x2)), 0.5*(diff(u_exact{i}(3),x1) + diff(u_exact{i}(1),x3)); ...
+                        0.5*(diff(u_exact{i}(1),x2) + diff(u_exact{i}(2),x1)), diff(u_exact{i}(2),x2), 0.5*(diff(u_exact{i}(3),x2) + diff(u_exact{i}(2),x3)); ...
+                        0.5*(diff(u_exact{i}(1),x3) + diff(u_exact{i}(3),x1)), 0.5*(diff(u_exact{i}(3),x2) + diff(u_exact{i}(2),x3)), diff(u_exact{i}(3),x3);]);
+                sigma{i} = lambda.*trace(epsilon{i}).*eye(3,3) + 2.*mu.*epsilon{i};
+                f_exact{i} = -[divergence(sigma{i}(:,1),X); divergence(sigma{i}(:,2),X); divergence(sigma{i}(:,3),X)];
+            end
+            
+            % Dirichlet
+            d1_xyz = find(xb(:,1) == -(geom.l/2));
+            
+            d2_xyz = find(xb(:,1) == (geom.l/2));
+            
+            % Get Neumann points
+            N1_xyz = find(xb(:,3) == -(geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
+            N_n1 = repmat([0, 0, -1],length(N1_xyz),1);
 
-        [~, id] = sort(sqrt((xb(:,1) - 100).^2 + (xb(:,2) - 70).^2 + (xb(:,3) + 1000).^2));
-        bottom_4 = id(1:150);
+            N2_xyz = find(xb(:,3) == (geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
+            N_n2 = repmat([0, 0, 1],length(N2_xyz),1);
 
-        [~, id] = sort(sqrt((xb(:,1) - 0).^2 + (xb(:,2) - 170).^2 + (xb(:,3) + 1000).^2));
-        bottom_5 = id(1:200);
+            N3_xyz = find(xb(:,2) == -(geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
+            N_n3 = repmat([0, -1, 0],length(N3_xyz),1);
 
-        % Pressures to traction
-        p_ab = pressure_b.*nb(ab_xyz,:);
-        p_lung = pressure_t.*nb(lung_xyz,:);
+            N4_xyz = find(xb(:,2) == (geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
+            N_n4 = repmat([0, 1, 0],length(N4_xyz),1);
+                            
+        case 'physical'
+            d1_xyz = find(xb(:,1) == -(geom.l/2));
 
-        % Plot boundary conditions
-        % figure()
-        % plot3(xb(:,1),xb(:,2),xb(:,3),'.');
-        % hold on
-        % plot3(xb(bottom_xyz,1),xb(bottom_xyz,2),xb(bottom_xyz,3),'c.');
-        % plot3(xb(ab_xyz,1),xb(ab_xyz,2),xb(ab_xyz,3),'g.');
-        % plot3(xb(lung_xyz,1),xb(lung_xyz,2),xb(lung_xyz,3),'r.');
-        % quiver3(xb(ab_xyz,1),xb(ab_xyz,2),xb(ab_xyz,3),p_ab(:,1),p_ab(:,2),p_ab(:,3));
-        % quiver3(xb(lung_xyz,1),xb(lung_xyz,2),xb(lung_xyz,3),p_lung(:,1),p_lung(:,2),p_lung(:,3));
-        % hold off
-    case 'cuboid'
-        switch mode
-            case 'manufactured'
-                syms x1 x2 x3
-                X = [x1 x2 x3];
+            d2_xyz = find(xb(:,1) == (geom.l/2));
 
-                for i = 1:cell_sz
-                    u_exact{i} = pars.u_exact{i}';
-                    epsilon{i} = ([diff(u_exact{i}(1),x1), 0.5*(diff(u_exact{i}(2),x1) + diff(u_exact{i}(1),x2)), 0.5*(diff(u_exact{i}(3),x1) + diff(u_exact{i}(1),x3)); ...
-                            0.5*(diff(u_exact{i}(1),x2) + diff(u_exact{i}(2),x1)), diff(u_exact{i}(2),x2), 0.5*(diff(u_exact{i}(3),x2) + diff(u_exact{i}(2),x3)); ...
-                            0.5*(diff(u_exact{i}(1),x3) + diff(u_exact{i}(3),x1)), 0.5*(diff(u_exact{i}(3),x2) + diff(u_exact{i}(2),x3)), diff(u_exact{i}(3),x3);]);
-                    sigma{i} = lambda.*trace(epsilon{i}).*eye(3,3) + 2.*mu.*epsilon{i};
-                    f_exact{i} = -[divergence(sigma{i}(:,1),X); divergence(sigma{i}(:,2),X); divergence(sigma{i}(:,3),X)];
-                end
-                
-                % Dirichlet
-                d1_xyz = find(xb(:,1) == -(geom.l/2));
-                
-                d2_xyz = find(xb(:,1) == (geom.l/2));
-                
-                % Get Neumann points
-                N1_xyz = find(xb(:,3) == -(geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
-                N_n1 = repmat([0, 0, -1],length(N1_xyz),1);
+            N1_xyz = find(xb(:,3) == -(geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
+            N_n1 = repmat([0, 0, -1],size(N1_xyz,1),1);
 
-                N2_xyz = find(xb(:,3) == (geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
-                N_n2 = repmat([0, 0, 1],length(N2_xyz),1);
+            N2_xyz = find(xb(:,3) == (geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
+            N_n2 = repmat([0, 0, 1],size(N2_xyz,1),1);
 
-                N3_xyz = find(xb(:,2) == -(geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
-                N_n3 = repmat([0, -1, 0],length(N3_xyz),1);
+            N3_xyz = find(xb(:,2) == -(geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
+            N_n3 = repmat([0, -1, 0],size(N3_xyz,1),1);
 
-                N4_xyz = find(xb(:,2) == (geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
-                N_n4 = repmat([0, 1, 0],length(N4_xyz),1);
-                                
-            case 'physical'
-                d1_xyz = find(xb(:,1) == -(geom.l/2));
+            N4_xyz = find(xb(:,2) == (geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
+            N_n4 = repmat([0, 1, 0],size(N4_xyz,1),1);
 
-                d2_xyz = find(xb(:,1) == (geom.l/2));
-
-                N1_xyz = find(xb(:,3) == -(geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
-                N_n1 = repmat([0, 0, -1],size(N1_xyz,1),1);
-
-                N2_xyz = find(xb(:,3) == (geom.h/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2));
-                N_n2 = repmat([0, 0, 1],size(N2_xyz,1),1);
-
-                N3_xyz = find(xb(:,2) == -(geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
-                N_n3 = repmat([0, -1, 0],size(N3_xyz,1),1);
-
-                N4_xyz = find(xb(:,2) == (geom.w/2) & xb(:,1) ~= -(geom.l/2) & xb(:,1) ~= (geom.l/2) & xb(:,3) ~= (geom.h/2) & xb(:,3) ~= -(geom.h/2));
-                N_n4 = repmat([0, 1, 0],size(N4_xyz,1),1);
-
-                p_top = pressure_t.*N_n2;
-        end
-end
+            p_top = pressure_t.*N_n2;
+    end
 
 %-----------------------------------------------------------
 % Compute the right hand side including scaling and scale the 
@@ -236,54 +206,37 @@ K = [-ELi; ELb]; % LHS
 f_i = zeros(Ni*3,1);
 f_b = zeros(Nb*3,1);
 
-switch geomname
-    case 'diaphragm'           
-        f_b(ab(1:length(ab)/3,1)) = p_ab(:,1).*pars.scaling.neumann(h,hy_b,dim);
 
-        f_b(ab(length(ab)/3+1:2*length(ab)/3,1)) = ...
-            p_ab(:,2).*pars.scaling.neumann(h,hy_b,dim);
-
-        f_b(ab(2*length(ab)/3+1:length(ab),1)) = ...
-            p_ab(:,3).*pars.scaling.neumann(h,hy_b,dim);                
-
-        f_b(lung(1:length(lung)/3,1)) = p_lung(:,1).*pars.scaling.neumann(h,hy_b,dim);
-
-        f_b(lung(length(lung)/3+1:2*length(lung)/3,1)) = ...
-            p_lung(:,2).*pars.scaling.neumann(h,hy_b,dim);
-
-        f_b(lung(2*length(lung)/3+1:length(lung),1)) = ...
-            p_lung(:,3).*pars.scaling.neumann(h,hy_b,dim);
-    case 'cuboid'
-    switch mode
-        case 'manufactured'
-                clear f_b
-                f_i = p_func(f_exact,xi,bp_i,cell_sz).*pars.scaling.interior(h,hy_i,dim);
-                traction = pagemtimes(p_func(sigma,xb(N1_xyz,:),bp_b,cell_sz),reshape(N_n1',[3 1 length(N_n1)]));
-                f_b_N1 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
-                traction = pagemtimes(p_func(sigma,xb(N2_xyz,:),bp_b,cell_sz),reshape(N_n2',[3 1 length(N_n2)]));
-                f_b_N2 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
-                traction = pagemtimes(p_func(sigma,xb(N3_xyz,:),bp_b,cell_sz),reshape(N_n3',[3 1 length(N_n3)]));
-                f_b_N3 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
-                traction = pagemtimes(p_func(sigma,xb(N4_xyz,:),bp_b,cell_sz),reshape(N_n4',[3 1 length(N_n4)]));
-                f_b_N4 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
-                
-                f_b_d1 = p_func(u_exact,xb(d1_xyz,:),bp_b,cell_sz).*pars.scaling.dirichlet(h,hy_b,dim);
-                f_b_d2 = p_func(u_exact,xb(d2_xyz,:),bp_b,cell_sz).*pars.scaling.dirichlet(h,hy_b,dim);
-                f_b = [f_b_N1; f_b_N2; f_b_N3; f_b_N4; f_b_d1; f_b_d2];
-        case 'physical'
+switch mode
+    case 'manufactured'
             clear f_b
-                f_i(1:Ni,1) = body_force.x.*pars.scaling.interior(h,hy_i,dim);
-                f_i(Ni+1:2*Ni,1) = body_force.y.*pars.scaling.interior(h,hy_i,dim);
-                f_i(2*Ni+1:3*Ni,1) = body_force.z.*pars.scaling.interior(h,hy_i,dim);                                
-                f_b_N1 = zeros(3*size(N1_xyz,1),1).*pars.scaling.neumann(h,hy_b,dim);
-                f_b_N2 = [p_top(:,1); p_top(:,2); p_top(:,3)].*pars.scaling.neumann(h,hy_b,dim);
-                f_b_N3 = zeros(3*size(N3_xyz,1),1).*pars.scaling.neumann(h,hy_b,dim);
-                f_b_N4 = zeros(3*size(N4_xyz,1),1).*pars.scaling.neumann(h,hy_b,dim);
-                f_b_d1 = zeros(3*size(d1_xyz,1),1).*pars.scaling.dirichlet(h,hy_b,dim);
-                f_b_d2 = zeros(3*size(d2_xyz,1),1).*pars.scaling.dirichlet(h,hy_b,dim);
-                f_b = [f_b_N1; f_b_N2; f_b_N3; f_b_N4; f_b_d1; f_b_d2];
-    end
+            f_i = p_func(f_exact,xi,bp_i,cell_sz).*pars.scaling.interior(h,hy_i,dim);
+            traction = pagemtimes(p_func(sigma,xb(N1_xyz,:),bp_b,cell_sz),reshape(N_n1',[3 1 length(N_n1)]));
+            f_b_N1 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
+            traction = pagemtimes(p_func(sigma,xb(N2_xyz,:),bp_b,cell_sz),reshape(N_n2',[3 1 length(N_n2)]));
+            f_b_N2 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
+            traction = pagemtimes(p_func(sigma,xb(N3_xyz,:),bp_b,cell_sz),reshape(N_n3',[3 1 length(N_n3)]));
+            f_b_N3 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
+            traction = pagemtimes(p_func(sigma,xb(N4_xyz,:),bp_b,cell_sz),reshape(N_n4',[3 1 length(N_n4)]));
+            f_b_N4 = reshape(permute(traction,[3 1 2]),[],1).*pars.scaling.neumann(h,hy_b,dim);
+            
+            f_b_d1 = p_func(u_exact,xb(d1_xyz,:),bp_b,cell_sz).*pars.scaling.dirichlet(h,hy_b,dim);
+            f_b_d2 = p_func(u_exact,xb(d2_xyz,:),bp_b,cell_sz).*pars.scaling.dirichlet(h,hy_b,dim);
+            f_b = [f_b_N1; f_b_N2; f_b_N3; f_b_N4; f_b_d1; f_b_d2];
+    case 'physical'
+        clear f_b
+            f_i(1:Ni,1) = body_force.x.*pars.scaling.interior(h,hy_i,dim);
+            f_i(Ni+1:2*Ni,1) = body_force.y.*pars.scaling.interior(h,hy_i,dim);
+            f_i(2*Ni+1:3*Ni,1) = body_force.z.*pars.scaling.interior(h,hy_i,dim);                                
+            f_b_N1 = zeros(3*size(N1_xyz,1),1).*pars.scaling.neumann(h,hy_b,dim);
+            f_b_N2 = [p_top(:,1); p_top(:,2); p_top(:,3)].*pars.scaling.neumann(h,hy_b,dim);
+            f_b_N3 = zeros(3*size(N3_xyz,1),1).*pars.scaling.neumann(h,hy_b,dim);
+            f_b_N4 = zeros(3*size(N4_xyz,1),1).*pars.scaling.neumann(h,hy_b,dim);
+            f_b_d1 = zeros(3*size(d1_xyz,1),1).*pars.scaling.dirichlet(h,hy_b,dim);
+            f_b_d2 = zeros(3*size(d2_xyz,1),1).*pars.scaling.dirichlet(h,hy_b,dim);
+            f_b = [f_b_N1; f_b_N2; f_b_N3; f_b_N4; f_b_d1; f_b_d2];
 end
+
 
 f = [f_i; f_b]; % RHS
 

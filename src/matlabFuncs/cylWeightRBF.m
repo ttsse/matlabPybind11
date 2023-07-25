@@ -1,8 +1,12 @@
-% Evaluate Wendland's C� function and its derivatives
-% Modified for cylindrical patches 2019
-% The bump function added 2019
-
-%  (C) Alfa Heryudono 2010, Victor Shcherbakov, Elisabeth Larsson 2015, 2018
+% ----------------------------------------------------------------------------------
+% cylWeightRBF.m -- Evaluate Wendland's C2 or the bump function and its derivatives. 
+%                   Modified for cylindrical patches 2019, bump function added 2019.
+% Copyright (c) 2010 Alfa Heryudono <aheryudono@umassd.edu>, Victor Shcherbakov, 
+%               Elisabeth Larsson <eisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
 
 function [phi,phigrad,phiLap,phiH] = cylWeightRBF(psi,C,R,Z,T,xloc,plist)
 %

@@ -1,6 +1,11 @@
+% ----------------------------------------------------------------------------------
+% globPts2Loc.m -- Convert coordinates from global coordinate system to local.
+% Copyright (c) Elisabeth Larsson <eisabeth.larsson@it.uu.se>
 %
-% Here, we can either have an index list or a structure for xglob
-%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function xloc = globPts2Loc(C,T,xglob,plist)
   for k=1:length(T)
     if (nargin==4)  

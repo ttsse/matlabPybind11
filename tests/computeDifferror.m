@@ -1,3 +1,13 @@
+% -------------------------------------------------------------------------
+% computeDifferror.m -- Test function which computes the L2 and Linf error
+%                       of numerical interpolation operators and derivatives
+%                       Test function used f = sin(pi*x*y*z).
+% Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
+
 function differror = computeDifferror(xc,xi,xb,Ei,Eb,Jb,Hi)
 
 %         fscale = [194.6542 136.2784 925.8762];

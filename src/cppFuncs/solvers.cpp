@@ -1,5 +1,5 @@
 /*
-    EigenBindings.cpp -- creating pybind11 bindings for Eigen library
+    solvers.cpp -- creating pybind11 bindings for Eigen library
     Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
 
     All rights reserved. Use of this source code is governed by a

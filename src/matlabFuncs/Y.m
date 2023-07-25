@@ -1,10 +1,13 @@
+% ----------------------------------------------------------------------------------
+% Y.m -- Computing the Laplace spherical harmonics along with their derivatives.
+%        Copyright (c) Cecile Piret <cmpiret@mtu.edu>, Erik Lehto, 
+%        Elisabeth Larsson <elisabeth.larsson@it.uu.se>
 %
-% For a description of the quantities that are computed, see the article
-% [] and the handout on second order derivatives for RBF-QR in 3D.
-% The last two derivatives include combinations t remove singularities.
-%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function [YY,Yth,Yfi_over_s,Yfi,Ythth,Ythfi,Yfifi]=Y(mu,th,fi,YY)
-%%% [YY,Yth,Yfi_over_s] = Y(mu,th,fi,YY)
 %
 % Given a max SPH level mu and column vectors with th and fi
 % locations on the unit sphere, function Y returns a
@@ -53,6 +56,7 @@ z = cos(th);
 cosfi = cos(t); sinfi = sin(t);
 for m=mmin+1:mu
     %   p = legendre(m,z,'norm')'; % We need the normalization 'norm'.
+    % [p,pth,p_over_s,pthth,pfifi,pthfi] = inHouseLegendre(m,z,'norm');
     [p,pth,p_over_s,pthth,pfifi,pthfi] = legendre_modified(m,z,'norm');
     p = p.'; pth = pth.'; p_over_s = p_over_s.'; pthth = pthth.';
     pfifi = pfifi.'; pthfi=pthfi.';

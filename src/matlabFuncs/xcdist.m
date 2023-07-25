@@ -1,30 +1,14 @@
+% ----------------------------------------------------------------------------------
+% xcdist.m -- Compute distance between evaluation and collocation points,
+%             r=||xi-cj|| together with componentwise signed differences.
+% Copyright (c) Elisabeth Larsson <elisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function r=xcdist(x,c,all)
 
-% if (nargin==1)
-%   all=0;
-%   c=x;
-% elseif (nargin==2)
-%   all=0;
-% end
-% 
-% dim = size(x,2);
-% switch dim
-%     case 3
-%         dx = repmat(x(:,1), 1, size(c,1)) - repmat(c(:,1)', size(x,1), 1);
-%         dy = repmat(x(:,2), 1, size(c,1)) - repmat(c(:,2)', size(x,1), 1);
-%         dz = repmat(x(:,3), 1, size(c,1)) - repmat(c(:,3)', size(x,1), 1);
-%         r = sqrt(dx.^2 + dy.^2 + dz.^2);
-%     case 2
-%         dx = repmat(x(:,1), 1, size(c,1)) - repmat(c', size(x,1), 1);
-%         dy = repmat(x(:,2), 1, size(c,1)) - repmat(c', size(x,1), 1);
-%         r = sqrt(dx.^2 + dy.^2);
-% end
-
-
-% 
-% Evaluation/collocation points and center points are not always the
-% same. We compute r=||xi-cj|| together with componentwise signed differences.
-%
 if (nargin==1)
   all=0;
   c=x;

@@ -1,5 +1,10 @@
-% Function that puts Halton points in a cuboid with size lxwxh with mean
-% distance between points, h_p
+% ----------------------------------------------------------------------------------
+% makeFEMRectangle.m -- construct halton point cloud of 3D cuboid with size lxwxh 
+% Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
 
 function [bdata geom] = makeFEMRectangle(l,w,h,display)
         

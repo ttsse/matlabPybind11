@@ -1,6 +1,10 @@
+% ----------------------------------------------------------------------------------
+% refinrTriMesh.m -- Split triangles until their size is smaller than triA 
+% Copyright (c) 2023 Elisabeth Larsson <elisabeth.larsson@it.uu.se>
 %
-% Split triangles until their size is smaller than triA
-% Return nodes, triangles, and inner outer when applicable
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
 function newdata = refineTriMesh(bdata,triA)
   dim = size(bdata.nodes,2);
   tolLarge = 5;

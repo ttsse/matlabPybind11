@@ -1,9 +1,15 @@
+% ----------------------------------------------------------------------------------
+% computeGlobalOp.m -- compute approximate differentiation operator, op,
+%                      in a patch covered domain. 
+%                      Options for op: 'H' - Hessian, 'J' - Jacobian, 
+%                      'L' - Laplace, '0' - Interpolation  
+% Copyright (c) 2021 Andreas Michael <andreas.michael@it.uu.se>
 %
-% Based on an approximation, we set up the global system matrix for a
-% particular operator. If several blocks are desired, these are computed
-% separately. Currently only does evaluation or Laplacian.
-% 
-function Eout=computeGlobalOp_Bunny(approx,C,R,Z,T,op,x,plist,pu)
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
+function Eout=computeGlobalOp(approx,C,R,Z,T,op,x,plist,pu)
 %
 % First we allocate the global sparse matrix.
 %
@@ -194,7 +200,6 @@ function Eout=computeGlobalOp_Bunny(approx,C,R,Z,T,op,x,plist,pu)
     %
     % Add to the global matrix
     %
-    %    Eout(ind,(k-1)*nc+1:k*nc) = Eout(ind,(k-1)*nc+1:k*nc) + Eloc;
     ic = (nc*(k-1)+1:nc*k);
     if (op=='H')
         for d_1 = 1:dim

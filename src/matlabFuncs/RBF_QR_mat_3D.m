@@ -1,3 +1,11 @@
+% ----------------------------------------------------------------------------------
+% RBF_QR_mat_3D.m -- Computes a matrix for differential operator 'op'.
+% Copyright (c) Erik Lehto, Elisabeth Larsson <eisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function [A,T] = RBF_QR_mat_3D(Psi,op,var)
 %--- Call patterns
 %--- [A,T]=RBF_QR_mat_3D(Psi,op,xe) First time for these points (xe)

@@ -1,11 +1,20 @@
+% -------------------------------------------------------------------------
+% plotElasticityError.m -- plot errors in derivative approximations 
+%                          and the PDE solution
+% Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
+
 close all
 clear all 
         
 nPatches = [20 30 40 50 60 70];% 30 40 50 60 70];%40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200];% 50 60 70 80 90 100];% 110 120 130 140 150 160 170 180 190 200];% 110 120 130 140];
-nLoc = [56];% 286];% 364];% 455];
+nLoc = [56 84 120 165 220];% 286];% 364];% 455];
 overlap = 0.05;
-oversamp = 3;
-ep = 0.1;
+oversamp = 5;
+ep = 0.5;
 nu = 0.3;
 func = 'gauss';
 
@@ -27,8 +36,8 @@ for i = 1:length(nPatches)
                     num2str(oversamp),'_ep', num2str(ep),'_nu',int2str(nu*100), ...
                     '_manufactured_',func];
 
-        % pos = find(exper_fldr~='.');
-        % exper_fldr = exper_fldr(pos);
+        pos = find(exper_fldr~='.');
+        exper_fldr = exper_fldr(pos);
         load([exper_fldr,'.mat']);
         L2_RBF(i,j) = Result.L2;
         Linf_RBF(i,j) = Result.Linf;

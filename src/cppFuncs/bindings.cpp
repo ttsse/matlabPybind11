@@ -1,10 +1,11 @@
 /*
-    EigenBindings.cpp -- creating pybind11 bindings for Eigen library
+    bindings.cpp -- pybind11 bindings for all functions declared in funcs.hpp
     Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
 
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file.
 */
+
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <omp.h>

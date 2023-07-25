@@ -1,11 +1,17 @@
+% ----------------------------------------------------------------------------------
+% RBF_QR_diffmat_3D.m -- Computes a differentiation matrix 
+%                        (weights for RBF-FD stencils) using Gaussian RBFs at 
+%                        evaluation point(s) xe for RBFs placed at the nodes xk.
+% Copyright (c) Erik Lehto, Elisabeth Larsson <eisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function [A,Psi,T] = RBF_QR_diffmat_3D(op,xe,varargin)
 % Alternative calls:
 % [A,Psi]=RBF_QR_diffmat(op,xe,xk,ep) % First time
 % [A,Psi]=RBF_QR_diffmat(op,xe,Psi)   % If Psi is already computed
-%
-% Computes a differentiation matrix (weights for RBF-FD stencils)
-% using Gaussian RBFs at evaluation point(s) xe for RBFs placed at
-% the nodes xk.
 %
 %--- op (char)    : '0', 'x', 'y', 'z', 'L'
 %                   If a cell array is given, differentiation matrices are

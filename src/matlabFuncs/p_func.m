@@ -1,3 +1,12 @@
+% ----------------------------------------------------------------------------------
+% p_func.m -- Evaluate symbolic expression f_in, which is discontinuous at points 
+%             x_m, at points x.
+% Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function [f] = p_func(f_in,x,x_m,cell_sz)
 
 if cell_sz + 1 ~= length(x_m)

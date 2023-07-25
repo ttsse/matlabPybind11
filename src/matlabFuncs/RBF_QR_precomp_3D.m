@@ -1,5 +1,12 @@
+% ----------------------------------------------------------------------------------
+% RBF_QR_precomp_3D.m -- Precompute some useful quantities needed for derivatives.
+% Copyright (c) Erik Lehto, Elisabeth Larsson <eisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function T = RBF_QR_precomp_3D(deg,xe,ep,j,m,p,T)
-% Precompute some useful things needed for derivatives. Store in T.
 jmax = max(j);
 jvec = 0:jmax;
 n = size(xe,1);

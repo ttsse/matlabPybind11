@@ -1,3 +1,12 @@
+% ----------------------------------------------------------------------------------
+% cylPUWeights.m -- compute Partition of Unity weights, their first and
+%                   second derivatives. psi = 'wendland_c2' or 'bump'
+% Copyright (c) Elisabeth Larsson <eisabeth.larsson@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% ----------------------------------------------------------------------------------
+
 function pu = cylPUWeights(psi,C,R,Z,T,x,plist)
 
 [Np,dim] = size(C);
