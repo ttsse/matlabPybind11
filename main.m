@@ -11,20 +11,20 @@ clearvars;
 close all;
 clear Eigen scipy np
 
-addpath(genpath('src/'))
-addpath(genpath('tests/'))
-
 if pyenv().ExecutionMode == "OutOfProcess"
     terminate(pyenv);
 end
 
-pyenv(Version="~/anaconda3/envs/TTSSE/bin/python3");
+pyenv(Version="~/anaconda3/envs/TTSSE3/bin/python3");
 pyenv("ExecutionMode","OutOfProcess");
 cpp = py.importlib.import_module('cppFuncs');
 np = py.importlib.import_module('numpy');
 scipy = py.importlib.import_module('scipy.sparse');
 
 warning on;
+
+addpath(genpath('src/'))
+addpath(genpath('tests/'))
 
 mode = 'manufactured'; % manufactured or physical 
 man_sol = 'gauss'; % gauss cosine 

@@ -5,7 +5,7 @@
 	
 INCLUDES= -I$${CONDA_PREFIX}/include -I$${CONDA_PREFIX}/include/eigen3 $$(python3 -m pybind11 --includes)
 CFLAGS = -O3 -Wall -Werror -fopenmp -fPIC 
-LDFLAGS = -std=c++11 -lspqr -lcholmod -lm -fopenmp -fPIC 
+LDFLAGS = -L$${CONDA_PREFIX}/lib -std=c++11 -lspqr -lcholmod -lm -fopenmp -fPIC
 SFILE = bindings
 DFILE = src/cppFuncs/
 SUFFIX = $$(python3.10-config --extension-suffix)
