@@ -45,6 +45,12 @@ The code solves the linear elasticity Boundary Value Problem (BVP) for a manufac
 The resulting deformation of the body is plotted in MATLAB and should look as follows:
 
 
-Additional post processing steps can be achieved by running the plotError.m script which plots the discrete errors $||e||_{l_2}$, $||e||_{l_\infty}$.
+Additional post processing steps can be achieved by running the plotError.m script which plots the discrete errors 
+```math
+||e||_{l_2}
+```
+```math
+||e||_{l_{\infty}}
+```
 The resulting error plots should look as follows:
 
