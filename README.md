@@ -38,7 +38,7 @@ The following parameters can be adjusted as follows:
 - Oversampling parameter (pars.oversamp = 3, 5)
 
 The original MATLAB reporitory is not fully provided here. Hence the limitations in parameter definition.
-The results from the cover generation algorithm are alternatively given in the .mat [files](/src/data)
+The results from the cover generation algorithm are alternatively given [here](/src/data)
 
 ## Results
 The code solves the linear elasticity Boundary Value Problem (BVP) for a manufactured solution either in the form of a Gaussian or a cosine function.
