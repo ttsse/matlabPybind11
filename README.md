@@ -32,7 +32,7 @@ To create more C++ functions and add bindings for those functions edit the follo
 Open the MATLAB environment and run main.m
 The following parameters can be adjusted as follows:
 - Manufactured solution used (man_sol = 'gauss', 'cosine')
-- Young's modulus and Poisson's ratio ($pars.E > 0$, $0 < pars.nu < 0.5$)
+- Young's modulus and Poisson's ratio (pars.E > 0, 0 < pars.nu < 0.5)
 - Number of patches used (numPatches = [20, 30, 40, 50, 60, 70, 80, 90, 100]); note that any combination and quantity of the given values can be used
 - Number of local points used in each patch (nLoc = [56, 84, 120, 165, 220]); note that any combination and quantity of the given values can be used
 - Oversampling parameter (pars.oversamp = 3, 5)
@@ -45,12 +45,6 @@ The code solves the linear elasticity Boundary Value Problem (BVP) for a manufac
 The resulting deformation of the body is plotted in MATLAB and should look as follows:
 
 
-Additional post processing steps can be achieved by running the plotError.m script which plots the discrete errors 
-```math
-||e||_{l_2}
-```
-```math
-||e||_{l_{\infty}}
-```
+Additional post processing steps can be achieved by running the plotError.m script which plots errors in the discrete $l_2$ norm. 
 The resulting error plots should look as follows:
 
