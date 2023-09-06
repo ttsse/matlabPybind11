@@ -14,16 +14,16 @@ MATLAB version R2023a is required, as well as the following toolboxes:
 The conda package manager (or similar) is needed to install the required libraries.
 To create the required environment run the following in the terminal:
 ```
-conda create --name TTSSE --file condaEnv.yaml
+$ conda create --name TTSSE --file condaEnv.yaml
 ```
 and activate the environment:
 ```
-conda activate TTSSE
+$ conda activate TTSSE
 ```
 ## Compile the C++ code
 To compile the C++ code and create the necessary shared library file to be read by MATLAB use the provided MakeFile:
 ```
-make
+$ make
 ```
 A file named "cppFuncs.cpython-310-x86_64-linux-gnu.so" should now be available.
 To create more C++ functions and add bindings for those functions edit the following [files](/src/cppFuncs)
