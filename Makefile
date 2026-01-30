@@ -3,12 +3,12 @@
     All rights reserved. Use of this source code is governed by a \
     BSD-style license that can be found in the LICENSE file.
 	
-INCLUDES= -I$${CONDA_PREFIX}/include -I$${CONDA_PREFIX}/include/eigen3 $$(python3 -m pybind11 --includes)
+INCLUDES= -I$${CONDA_PREFIX}/include -I$${CONDA_PREFIX}/include/eigen3 -I$${CONDA_PREFIX}/include/suitesparse $$(python -m pybind11 --includes)
 CFLAGS = -O3 -Wall -Werror -fopenmp -fPIC 
 LDFLAGS = -L$${CONDA_PREFIX}/lib -std=c++11 -lspqr -lcholmod -lm -fopenmp -fPIC
 SFILE = bindings
 DFILE = src/cppFuncs/
-SUFFIX = $$(python3.10-config --extension-suffix)
+SUFFIX = $$(python3.9-config --extension-suffix)
 
 cppFuncs: solvers.o $(SFILE).o
 	g++ -shared solvers.o $(SFILE).o -o cppFuncs$(SUFFIX) $(LDFLAGS) 

@@ -1,9 +1,7 @@
 # matlabPythonCpp
-The present repository implements the Radial Basis Function Partition of Unity method (RBF-PUM) to solve the 
-linear elasticity boundary value problem on a thin 3D plank. 
+The present repository includes the mixed MATLAB and C++ implementation of two RBF based methods (RBF-PUM and RBF-FD). The methods are used to solve a constructed Poisson problem and differential operators are constructed using available MATLAB software. The connection between MATLAB and C++ is facilitated through the pybind11 library and MATLAB Engine API for Python.
 
-The majority of the code is written in MATLAB with some C++ implementation. The connection is facilitated through
-pybind11 bindings as well as the MATLAB Engine API for Python.
+The present implementation only works with linux-64 and macOS-64 operating systems given limitations of specific required libraries.
 
 ## Installation
 MATLAB version R2023a is required, as well as the following toolboxes:
@@ -11,40 +9,40 @@ MATLAB version R2023a is required, as well as the following toolboxes:
 - Symbolic Math Toolbox
 - Image Processing Toolbox
 
-The conda package manager (or similar) is needed to install the required libraries.
-To create the required environment run the following in the terminal:
+The conda package manager is needed to install the required libraries. (See https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). To create the required environment run the following in the terminal:
 ```
-$ conda create --name TTSSE --file condaEnv.yaml
+conda create --name TTSSE --file condaEnv.yml
 ```
 and activate the environment:
 ```
-$ conda activate TTSSE
+conda activate TTSSE
 ```
 ## Compile the C++ code
-To compile the C++ code and create the necessary shared library file to be read by MATLAB use the provided MakeFile:
+To compile the C++ code and create the necessary shared library file:
 ```
-$ make
+make
 ```
-A file named "cppFuncs.cpython-310-x86_64-linux-gnu.so" should now be available.
+A file named "cppFuncs.cpython-39-x86_64-linux-gnu.so" should now be available.
 To create more C++ functions and add bindings for those functions edit the following [files](/src/cppFuncs)
 
-## Executing the code
-Open the MATLAB environment and run main.m
-The following parameters can be adjusted as follows:
-- Manufactured solution used (man_sol = 'gauss', 'cosine')
-- Young's modulus and Poisson's ratio (pars.E > 0, 0 < pars.nu < 0.5)
-- Number of patches used (numPatches = [20, 30, 40, 50, 60, 70, 80, 90, 100]); note that any combination and quantity of the given values can be used
-- Number of local points used in each patch (nLoc = [56, 84, 120, 165, 220]); note that any combination and quantity of the given values can be used
-- Oversampling parameter (pars.oversamp = 3, 5)
+## Download RBF repository
+Get repository used to compute derivatives:
+```
+git clone https://github.com/elisabethl/rbfdiff.git
+```
 
-The original MATLAB reporitory is not fully provided here. Hence the limitations in parameter definition.
-The results from the cover generation algorithm are alternatively given [here](/src/data)
+## Tests
+The code is tested for both the robustness of the connection between MATLAB and C++ and the accuracy of the solution. The tests are vailable in [files](/tests/) and are as follows:
+
+1. *cppFuncsTest.m*: Verify that results from implemented C++ functions is equal to results from MATLAB functions.
+2. *memoryTest.m*: Test to see if inputs to C++ functions can be passed by reference.  
+3. *mainInputTest.m*: Ensure that *main.m* is robust to spurious input.
+4. *mainErrorTest.m*: Compute numerical error for both methods.
+5. *speedTest.m*: Speed comparison between full MATLAB and mixed MATLAB/C++ implementation. 
+
+## Executing the code
+Open the MATLAB environment or launch from terminal and run setPaths; followed by main. 
+The following parameters can be adjusted in main:
 
 ## Results
-The code solves the linear elasticity Boundary Value Problem (BVP) for a manufactured solution either in the form of a Gaussian or a cosine function.
-The resulting deformation of the body is plotted in MATLAB and should look as follows:
-
-
-Additional post processing steps can be achieved by running the plotError.m script which plots errors in the discrete $l_2$ norm. 
-The resulting error plots should look as follows:
 

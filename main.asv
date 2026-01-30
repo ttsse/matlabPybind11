@@ -1,0 +1,52 @@
+% -------------------------------------------------------------------------
+% main.m -- simulate derfomation of 3D thin, linearly elastic bodies
+%           using the RBF-PU method
+% Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
+
+clearvars;
+close all;
+clear Eigen scipy np
+
+if pyenv().ExecutionMode == "OutOfProcess"
+    terminate(pyenv);
+end
+
+if exist("~/miniconda3/envs/TTSSE/bin/python3")
+    pyenv(Version="~/miniconda3/envs/TTSSE/bin/python3");
+elseif exist("~/anaconda3/envs/TTSSE/bin/python3")
+    pyenv(Version="~/anaconda3/envs/TTSSE/bin/python3");
+else
+    error("Install conda (miniconda or anaconda) and generate environment as instructed before running this code")
+end
+
+pyenv("ExecutionMode","OutOfProcess");
+cpp = py.importlib.import_module('cppFuncs');
+np = py.importlib.import_module('numpy');
+scipy = py.importlib.import_module('scipy.sparse');
+
+pars.dim = 2;                            % dim = 1,2 or 3
+pars.display = 1;                        % Plot solution
+pars.geom = 'ball';                      % ball or cube
+pars.mode = 'collocation';                  % fitted, unfitted or collocation
+pars.bcMode = 'weak';                    % strong or weak imposition of boundary conditions (only relevant for fitted)
+pars.scaling = 1;                        % Include scaling of the unfitted LS problem
+pars.mvCentres = 1;                      % Option to have a Y point on top of all X points inside the domain
+pars.q = 3;                              % Oversampling
+
+pars.ep = 0.1;                           % Order of 'phs' basis, shape parameter for other bases
+pars.phi = 'rbfqr';                      % Choice of basis 'phs', 'mq', 'gs', 'iq', 'rbfqr'
+pars.psi = 'w2';                         % Weight function: wendland_c2 or bump (relevant for RBFPUM)
+pars.pdeg = -1;                          % Polynomial extension, not relevant for 'rbfqr'
+pars.del = 0.4;                          % Overlap between patches
+
+order = [2];
+
+pars.P = 5; 
+pars.extCoeff = 0.5;
+pars.phi = 'phs';
+pars.ep = 3;
+
