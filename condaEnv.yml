@@ -3,9 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - gcc = 10.4
-  - gxx = 10.4
-  - eigen=3.4.0
+  - gcc = 15.2
+  - gxx = 15.2
+  - eigen = 3.4.0
   - make = 4.4.1
   - cmake = 4.2.2
   - pybind11=3.0.1
