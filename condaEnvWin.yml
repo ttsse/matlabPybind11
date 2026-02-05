@@ -1,0 +1,16 @@
+name: TTSSE
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - eigen = 3.4.0 
+  - cmake = 4.2.2
+  - pybind11=3.0.1
+  - python = 3.9
+  - suitesparse = 7.10
+  - numpy = 1.26
+  - scipy = 1.10
+  - llvm-openmp
+  - libgomp
+  - openblas = 0.3.31
+  - clang = 17.0.1

@@ -8,10 +8,15 @@ end
 %
 % Import python version from conda environment
 %
-if exist("~/miniconda3/envs/TTSSE/bin/python3")
-    pyenv(Version="~/miniconda3/envs/TTSSE/bin/python3");
-elseif exist("~/anaconda3/envs/TTSSE/bin/python3")
-    pyenv(Version="~/anaconda3/envs/TTSSE/bin/python3");
+[~,cmdOut] = system('conda info --base');
+cmdOut = strtrim(cmdOut);
+if strcmp(computer,"PCWIN64") % GLNXA64 - Linux, MACI64/MACA64 - macOS / silicon
+    pyPath = '\envs\TTSSE\python.exe';
+else
+    pyPath = '/envs/TTSSE/bin/python3';
+end
+if exist([cmdOut, pyPath])
+    pyenv(Version=[cmdOut, pyPath]);
 else
     error("cppFuncTest: Install conda (miniconda or anaconda) and generate environment as instructed before running this code")
 end
@@ -21,7 +26,7 @@ end
 pyenv("ExecutionMode","OutOfProcess");
 cpp = py.importlib.import_module('cppFuncs');
 np = py.importlib.import_module('numpy');
-scipy = py.importlib.import_module('scipy.sparse');
+sp = py.importlib.import_module('scipy.sparse');
 
 M = N*q;
 %
@@ -40,7 +45,8 @@ A = rand(N,N);
 b = rand(N,1);
 
 tic
-xDenseCpp = double(py.cppFuncs.denseSolve(py.numpy.array(A,copy=false,order='F'),py.numpy.array(b,copy=false,order='F')))';
+% xDenseCpp = double(py.cppFuncs.denseSolve(py.numpy.array(A,copy=false,order='F'),py.numpy.array(b,copy=false,order='F')))';
+xDenseCpp = double(cpp.denseSolve(np.array(A),np.array(b)));
 tCpp = toc;
 
 tic
@@ -65,7 +71,8 @@ A = rand(M,N);
 b = rand(M,1);
 
 tic
-xDenseLScpp = double(py.cppFuncs.denseSolve(py.numpy.array(A,copy=false,order='F'),py.numpy.array(b,copy=false,order='F')))';
+% xDenseLScpp = double(py.cppFuncs.denseSolve(py.numpy.array(A,copy=false,order='F'),py.numpy.array(b,copy=false,order='F')))';
+xDenseLScpp = double(cpp.denseSolve(np.array(A),np.array(b)))';
 tCpp = toc;
 
 tic
@@ -86,14 +93,20 @@ tOut = [tOut; tCpp, tMatlab];
 %
 % Solve sparse LS system
 %
-A = sprand(M,N,0.01);
+A = sprand(M,N,0.01,0.1);
+b = rand(size(A,1),1);
 tic
+% Making row, col and data arrays 1D. !Necessary for scipy!
 [BI, BJ, BV] = find(A);
-pyB = py.scipy.sparse.csc_matrix({BV, {uint64(BI-1) uint64(BJ-1)}}, {uint64(size(A,1)), uint64(size(A,2))});
+
+row  = np.array(BI - 1).reshape(int32(-1));
+col  = np.array(BJ - 1).reshape(int32(-1));
+data = np.array(BV,pyargs('dtype', 'float64')).reshape(int32(-1));
+pyB = sp.csc_matrix({data,{row, col}}, {int32(size(A,1)), int32(size(A,2))});
 tConv = toc;
 
 tic
-xSparseLScpp = double(py.cppFuncs.sparseSolve(pyB,py.numpy.array(b,copy=false,order='F')))';
+xSparseLScpp = double(cpp.sparseSolve(pyB,np.array(b,pyargs('dtype', 'float64'))))';
 tCpp = toc;
 
 tic

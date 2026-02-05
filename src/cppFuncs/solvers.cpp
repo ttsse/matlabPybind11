@@ -17,7 +17,7 @@
 #include <eigen3/Eigen/Sparse>
 #include <eigen3/Eigen/OrderingMethods>
 #include <eigen3/Eigen/SPQRSupport>
-#include<eigen3/Eigen/SparseLU>
+#include <eigen3/Eigen/SparseLU>
 #include "funcs.hpp"
 #include <thread>
 
