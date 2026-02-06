@@ -13,6 +13,6 @@ dependencies:
   - llvm-openmp
   - libgomp
   - openblas = 0.3.31
-  - gcc = 15.2 
-  - gxx = 15.2 
+  - gcc = 10.4
+  - gxx = 10.4 
   - make = 4.4.1 

@@ -33,11 +33,21 @@ Eigen::VectorXd denseSolve(Eigen::MatrixXd A, Eigen::Ref<Eigen::VectorXd> b) {
     const int m = A.rows(), n = A.cols();
     if (m == n) {
         Eigen::PartialPivLU<Eigen::MatrixXd> lu;
+        auto start = high_resolution_clock::now();
         lu.compute(A);
-        return lu.solve(b);
+        Eigen::VectorXd x = lu.solve(b);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        py::print("cppFuncs: Time taken for dense LU solve:", static_cast<double>(duration.count()*1e-6),"s");
+        return x;
     } else {
+        auto start = high_resolution_clock::now();
         Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(A);
-        return qr.solve(b);
+        Eigen::VectorXd x = qr.solve(b);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        py::print("cppFuncs: Time taken for dense QR solve:", static_cast<double>(duration.count()*1e-6), "s");
+        return x;
     }
 }
 
@@ -48,17 +58,21 @@ Eigen::VectorXd sparseSolve(Eigen::SparseMatrix<double> A, Eigen::Ref<Eigen::Vec
     const int m = A.rows(), n = A.cols();
     if (m == n) {
         Eigen::SparseLU<Eigen::SparseMatrix<double>> lu;
+        auto start = high_resolution_clock::now();
         lu.compute(A);
         Eigen::VectorXd x = lu.solve(b);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        py::print("cppFuncs:Time taken for sparse LU solve:", static_cast<double>(duration.count()*1e-6), "s");
         return x;
     } else {
         Eigen::SPQR<Eigen::SparseMatrix<double>> spqr;
+        auto start = high_resolution_clock::now();
         spqr.compute(A);
         Eigen::VectorXd x = spqr.solve(b);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        py::print("cppFuncs: Time taken for sparse QR solve:", static_cast<double>(duration.count()*1e-6), "s");
         return x;
     }
-    // auto start = high_resolution_clock::now();
-    // auto stop = high_resolution_clock::now();
-    // auto duration = duration_cast<microseconds>(stop - start);
-    // py::print("Time taken for sparse solve: ", static_cast<double>(duration.count()*1e-6));
 }
