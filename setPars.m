@@ -1,75 +1,44 @@
-%------------------------------------------------------------------------------
-% setGeomPars
-% Purpose: To set default parameters and/or user specified parameters for cover
-%          generation and geometry reconstruction.
-%          See getAdaptiveCover and reconstructGeometry.
+% -------------------------------------------------------------------------
+% setPars.m -- Set default parameters for solving the PDE problem. 
+%              setPars; lists all parameters and options. 
+% Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
-% setGeomPars(); Lists all parameters and their default values in 2D and 3D
-%
-% pars = setGeomPars(dim); Provides a struct with the default parameters in
-%          dim dimensions.
-%
-% pars = setGeomPars(dim,'name1',value1,...'nameN',valueN); Creates a new
-%          struct, but replaces the defualt values of the named parameters by
-%          the given values.
-%
-% pars = setGeomPars(dim,pars,value1,...'nameN',valueN); Updates an existing
-%          parameter structure with new values for the given parameter names. 
-%
-% Example: dim = 2; % Use default values for 2D, but change the number of patches.
-%          pars = setGeomPars(dim,'numPatches',12); 
-%		  	
-% Copyright (c) 2024 Elisabeth Larsson <elisabeth.larsson@it.uu.se>
-%		     Andreas Michael <andreas.michael@it.uu.se>
-%                    Felix W who visited us from school for
-%                    practical worklife experience. 
-%------------------------------------------------------------------------------
-function pars = setGeomPars(varargin)
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
+function pars = setPars(varargin)
 %
 % Listing of parameters and default values
 % 
 if nargin == 0 && nargout == 0
     disp("Parameters required by RBFsolver, options are given between [] and default parameters given between {}:")
-    disp("      dim: Dimension of problem [ positive integer in range [1,3] {2} ]")
+    disp("        dim: Dimension of problem [ positive integer in range [1 | {2} | 3]")
     disp("       geom: Geometry to solve the problem in [ 'cube' of 'ball' {'ball'}]")
-    disp("   prob: Problem to solve [ 'poisson' {'poisson'} ]")
-    disp("          method: Localised RBF numerical method to use [ 'PUM' | 'FD' | {FD} ]")
-    disp("    mode: Extra classification of method used [ {'collocation'} | 'fitted' | 'unfitted']")
-    disp("       bcMode: Way to impose boundary conditions only relevant for fitted method [ 'strong' | {'weak'} ]")
-    disp("            scaling: Flag to scale the LS problem [ 0 | {1} ]")
-    disp("      display: Display flag [ 0 | {1} ]")
-    disp("           mvCentres: Flag to move evaluation points on centre points, irrelevant for collocation [ 0 | {1} ]")
-    disp("           psi: Compactly supported weight function for PUM [ 'bmp' | {'w2'} ]")
-    disp("           phi: Local RBF [ {'phs'} | 'mq' | 'gs' | 'rbfqr' | 'iq']")
-    disp("           ep: Shape parameter (smooth phi) [ positive scalar {0.1} ], order for 'phs' [ positive integer {3} ] ")
-    disp("          pdeg: Degree of polynomial added to basis, p [ positive integer | 0 | {-1} ]")
-    disp("       nodeGen: Scattered node type [ {""halt""} | ""uni"" ]")
-    disp("         debug: Debug flag [ {0} | 1 ]")
-    disp("       display: Display flag [ 0 | {1} ]")
-    disp("suppressOutput: No output flag [ {0} | 1 ]")
-    disp("         noRef: No patch refinement flag [ {0} | 1 ]")
-    disp("    ptchMargin: Margin to ensure cover of all points [ positive scalar {0.01} ]")
-    disp("    nrmValWght: Least squares for normal conditions relative value conditions in the reconstruction [ positive scalar {0.05} ]")
-    disp("          seed: Random number seed for reproducibility [ nonnegative integer {0} ]")
-    disp("  smallWdthTol: Minimum relative width considered when computing width of geometry without annotation of edge [ positive scalar {0.2}/{0.15}]")
-    disp("    neiNumFlip: Size of isolated point cluster to flip between inner and outer surfaces if misplaced [ positive integer {1} ]")
-    disp("        tolBnd: Maximum tolerance allowed when moving points to reconstructed boundary [ positive scalar {1e-9} ]")
-    disp("      maxitBnd: Maximum iterations allowed when moving points to reconstructded boundary [ positive integer {30}/{100} ]")
-    disp("maxNewtonMvTol: Tolerance used to restrict movement to surface in each Newton iteration [ positive scalar {0.01} ]")
-    disp("        neiTol: Tolerance by which patch neighbourhood is chosen to refine or merge [ scalar {0.3}/{0.3}]")
-    disp("    nClosePtch: Number of patches used to compute distance and volume to a point [ positive integer {5}/{12}]")
-    disp("       nPCAmin: Minimum points used to compute patch orientation [ positive integer {12}/{50} | {30}/{70} (no inner, outer, edge in data)]")
-    disp("    maxPtchRef: Maximum relative (to original) number of patches to add when refining [ positive scalar {0.9} ]")
-    disp("  minPtchMerge: Minumum relative (to original) number of patches to add when merging [ positive scalar {0.9} ]")
-    disp("     scaleData: Scale flag [ {0} | 1 ]")
-    disp("     dataScale: Scale factor that is applied to data if scaleData is set [positive scalar {1} ]")
+    disp("       prob: Problem to solve [ 'poisson' {'poisson'} ]")
+    disp("     method: Localised RBF numerical method to use [ 'PUM' | 'FD' | {FD} ]")
+    disp("       mode: Extra classification of method used [ {'collocation'} | 'fitted' | 'unfitted']")
+    disp("     bcMode: Way to impose boundary conditions only relevant for fitted method [ 'strong' | {'weak'} ]")
+    disp("    scaling: Flag to scale the LS problem [ 0 | {1} ]")
+    disp("    display: Display flag [ 0 | {1} ]")
+    disp("  mvCentres: Flag to move evaluation points on centre points, irrelevant for collocation [ 0 | {1} ]")
+    disp("        psi: Compactly supported weight function for PUM [ 'bmp' | {'w2'} ]")
+    disp("        phi: Local RBF [ {'phs'} | 'mq' | 'gs' | 'rbfqr' | 'iq']")
+    disp("         ep: Shape parameter (smooth phi) [ positive scalar {0.1} ], order for 'phs' [ positive integer {3} ] ")
+    disp("       pdeg: Degree of polynomial added to basis, p [ positive integer | 0 | {-1} ]")
+    disp("     memTol: Tolerance used to return error when system is too large to solve with cpp library [ positive scalae {0.1} ]")
+    disp("        del: Relative overlap between patches [ positive scalar {0.4} ]")
+    disp("          q: Oversampling factor between nodes and evaluation points [ positive scalar > 1 {3} ]")
+    disp("     rbfdeg: Polynomial degree localy supported by either patches or stencils in case of smooth basis [ positive integer ]")
+    disp("          P: Number of generated patches for PU methods [ positive integer {50} ]")
+    disp("          N: Global number of centre/node points for FD methods [ positive integer {200} ] ")
+    disp("   extCoeff: Fraction of stencil used for the extension in unfitted RBF-FD method case [ positive scalar {0.5} ]")
     return
 end
 %
 %
 %
-fieldName = ["extraTol", 'positiveDoubleZero';
-             "dataTol", 'positiveDoubleZero';
+fieldName = ["dim", 'dimPositiveInt';
+             "geom", 'positiveDoubleZero';
              "aspectRatio", 'positiveDouble';
              "nLoc", 'positiveInt';
              "numPatches", 'positiveInt';

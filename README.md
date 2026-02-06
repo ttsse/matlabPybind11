@@ -54,7 +54,7 @@ The code is tested for both the robustness of the connection between MATLAB and 
 5. *speedTest.m*: Speed comparison between full MATLAB and mixed MATLAB/C++ implementation. 
 
 ## Executing the code
-Open the MATLAB environment or launch from terminal and run setPaths; followed by main. 
+Launch the MATLAB environment from terminal and run setPaths; followed by main. 
 The following parameters can be adjusted in main:
 
 ## Results
