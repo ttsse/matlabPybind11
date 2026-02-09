@@ -1,6 +1,9 @@
 src/experiments/
+src/cppFuncs/example.cpp
 cppFuncs.*
 *.o
 *.asv
 .vscode/**/*
 build/
+rbfdiff/
+Makefile

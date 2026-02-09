@@ -28,9 +28,11 @@ PYBIND11_MODULE(cppFuncs, m) {
     m.def("denseSolve", &denseSolve,
           "A"_a.noconvert(),
           "b"_a.noconvert(),
+          "debug"_a=false,
           "Solves dense systems Ax = b", py::return_value_policy::reference_internal);
     m.def("sparseSolve", &sparseSolve, "Solves sparse systems Ax = b",
           "A"_a,
           "b"_a.noconvert(),
+          "debug"_a=false,
           "Solves sparse systems Ax = b", py::return_value_policy::reference_internal);
 }
