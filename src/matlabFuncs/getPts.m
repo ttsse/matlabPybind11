@@ -1,6 +1,29 @@
+% -------------------------------------------------------------------------
+% getPts.m       -- Point generation routine (ball, cube in dim = 1,2,3).
+%                   Used in RBFsolver.
+% Inputs         -- geom        -> String. Geometry [ 'ball' | 'cube' ]
+%                   N           -> Positive int. Number of points to generate.
+%                   n           -> Positive int. Number of point in each
+%                                  stencil (RBF-FD case).
+%                   C           -> Double 1xd array of domain centre in d dimensions. 
+%                   R           -> Double domain radius.
+%                   mode        -> String. Solve mode [ "unfitted" | "fitted" | "collocation"]
+%                   extCoeff    -> Double. Fraction of stencil to extend
+%                                  cover in case of "unfitted" mode.
+% Outputs        -- data        -> Structure with fields:
+%                   data.nodes  -> Double Nxd array of generated points.
+%                   data.inner  -> Double Ninxd array of interior points.
+%                   data.outer  -> Double Noutxd array of outer points (empty for "fitted").
+%                   data.bnd    -> Double Nbxd array of boundary points.
+%                   data.Area   -> Double. Domain boundary size.
+%                   data.Vol    -> Double. Domain volume (|\Omega|).
+% Syntax         -- [data] = getPts("ball",100,20,[0,0],1,"unfitted",0.5)
 %
-% Point generation routine
+% Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
 function [data] = getPts(geom,N,n,C,R,mode,extCoeff)
     dim = size(C,2);
     if strcmp(geom,'ball')
@@ -13,7 +36,6 @@ function [data] = getPts(geom,N,n,C,R,mode,extCoeff)
         % If using the unfitted method, no points on the boundary
         %
         if ~strcmp(mode,'unfitted')
-            % Boundary point generation
             if dim == 1
                 xB = [-R, R]';
             elseif dim == 2
@@ -30,7 +52,9 @@ function [data] = getPts(geom,N,n,C,R,mode,extCoeff)
             end
         end
         Nb = length(xB);
+        %
         % Interior point generation
+        %
         Ncube = ceil(dimRat(dim)*(N-Nb));
         x = 2*(R+n^(1/dim)*h*extCoeff)*(halton(Ncube,dim)-0.5);
         r2 = sqrt(sum(x.^2,2));
@@ -57,7 +81,6 @@ function [data] = getPts(geom,N,n,C,R,mode,extCoeff)
         % If using the unfitted method, no points on the boundary
         %
         if ~strcmp(mode,'unfitted')
-            % Boundary point generation
             if dim == 1
                 xB = [-R, R]';
             elseif dim == 2
@@ -81,7 +104,6 @@ function [data] = getPts(geom,N,n,C,R,mode,extCoeff)
                 Ry = eye(dim); Ry(1,1) = cos(pi/2); Ry(dim,dim) = cos(pi/2); Ry(dim,1) = -sin(pi/2); Ry(1,dim) = sin(pi/2); % Rotate 90 degrees along y-axis
                 xB = [xB; (Ry*xB')'];
                 xB = uniquetol(xB,1e-14,'ByRows',true);
-                NbE = size(xB,1);
                 Rx = eye(dim); Rx(dim-1,dim-1) = cos(pi/2); Rx(dim,dim) = cos(pi/2); Rx(dim-1,dim) = -sin(pi/2); Rx(dim,dim-1) = sin(pi/2); % Rotate 90 degrees
                 xBF = [2*(dimLCoeff(dim)*R)*(halton(NbF,dim-1)-0.5), ones(NbF,1)*XYZLim(1)];
                 xBF = [xBF; [1,1,-1].*xBF];
@@ -91,9 +113,10 @@ function [data] = getPts(geom,N,n,C,R,mode,extCoeff)
             end
         end
         Nb = length(xB);
+        %
         % Interior point generation
+        %
         x = 2*(dimLCoeff(dim)*R+dimLCoeff(dim)*n^(1/dim)*h*extCoeff)*(halton(N-Nb,dim)-0.5);
-        r2 = sqrt(sum(x.^2,2));
         x = x + C;
         %
         % Organize outputs including labels for points inside, outside and on the boundary

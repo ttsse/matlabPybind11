@@ -1,86 +1,85 @@
 % -------------------------------------------------------------------------
 % RBFsolver.m -- Numerically compute the solution to a Poisson problem using 
-%                RBF based methods.
+%                RBF based methods. Modules cpp, np, sp required (See
+%                importModules) if pars.cppOn = 1.
+% Inputs         -- pars    -> Parameter structure, see setPars.
+%                   cpp     -> Shared python library generated using
+%                              pybind11. See importModules.
+%                   np      -> Numpy library. See importModules.
+%                   sp      -> Scipy library. See importModules.
+% Outputs        -- l2Error -> Double. Discrete numerical error.
+%                   h       -> Double. Fill distance between node points.
+% Syntax         -- pathSet;
+%                   pars = setPars;
+%                   [cpp, np, sp] = importModules;
+%                   [l2Error, h] = RBFsolver(pars,varargin)   
+%
 % Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
 % All rights reserved. Use of this source code is governed by a
 % BSD-style license that can be found in the LICENSE file.
 % -------------------------------------------------------------------------
-function [l2Error, h] = RBFsolver(pars)
-
-method = pars.method;   % FD or PUM
-dim = pars.dim;                            % dim = 1,2 or 3
-display = pars.display;                        % Plot solution
-geom = pars.geom;                      % ball or cube
-mode = pars.mode;                    % fitted, unfitted or collocation
-bcMode = pars.bcMode;                    % strong or weak imposition of boundary conditions (only relevant for fitted)
-scaling = pars.scaling;                        % Include scaling of the unfitted LS problem
-mvCentres = pars.mvCentres;                      % Option to have a Y point on top of all X points inside the domain
-q = pars.q;                              % Oversampling for LS methods
-N = pars.N;                             % Number of centre points (X) in each patch - RBFPUM / Number of all centre points (X) - RBFFD 
-P = pars.P;
-ep = pars.ep;                           % Not relevant for 'r3' basis
-phi = pars.phi;                      % Choice of basis 'r3', 'mq', 'gs', 'iq', 'rbfqr'
-psi = pars.psi;
-pdeg = pars.pdeg;                          % Polynomial extension, not relevant for 'rbfqr'
-rbfdeg = pars.rbfdeg;
-extCoeff = pars.extCoeff;
-del = pars.del;
-prob = pars.prob;
-
+function [l2Error, h] = RBFsolver(pars,varargin)
+%
+% Ensure relevant libraries are provided
+%
+if pars.cppOn == 1 
+    if nargin == 4 && (strcmp(underlyingType(varargin{1}),'py.module') && strcmp(underlyingType(varargin{2}),'py.module') && strcmp(underlyingType(varargin{3}),'py.module')) 
+        [cpp, np, sp] = varargin{1:3};
+    else
+        error("RBFsolver: If parameter cppOn = 1, function requires python modules cpp, np, sp. Run [cpp, np, sp] = importModules and then RBFsolver(pars,cpp,np,sp).");
+    end
+end
 % 
 % Point number for RBF-FD method choice
 %
-if strcmp(method,'FD')
-    if pdeg == -1
-        n = nchoosek(rbfdeg+dim-1,dim); % Stencil size in smooth RBF case
+if strcmp(pars.method,'FD')
+    if pars.pdeg == -1
+        n = nchoosek(pars.rbfdeg+pars.dim-1,pars.dim); % Stencil size in smooth RBF case
     else
-        n = 2*nchoosek(pdeg+dim,dim);   % Stencil size in phs + poly case
+        n = 2*nchoosek(pars.pdeg+pars.dim,pars.dim);   % Stencil size in phs + poly case
     end
-    
-    if N < n && strcmp(method,'FD')
+    if pars.N < n && strcmp(pars.method,'FD')
         warning("RBFFD: The number of centre points are less than the stencil points required for the given polynomial order. N is increased.")
-        N = n;
+        pars.N = n;
     end
-    extCoeff = extCoeff*(strcmp(mode,"unfitted"));
-elseif strcmp(method,'PUM')
+    extCoeff = pars.extCoeff*(strcmp(pars.mode,"unfitted"));
+elseif strcmp(pars.method,'PUM')
     n = nchoosek(pars.rbfdeg+pars.dim,pars.dim);
 end
-
 %
 % Place N centre points and M evaluation points in geom with centre C and radius R
 %
-C = zeros(1,dim);
-if strcmp(geom,'cube')
-    R = 1*(dim)^(1/2);
-elseif strcmp(geom,'ball')
+C = zeros(1,pars.dim);
+if strcmp(pars.geom,'cube')
+    R = 1*(pars.dim)^(1/2);
+elseif strcmp(pars.geom,'ball')
     R = 1;
 else
     error("RBFsolver: Requested geometry not implemented yet");
 end
-
-if strcmp(method,'FD')
+if strcmp(pars.method,'FD')
     %
     % Get centre points (xc)
     %
-    [dataX] = getPts(geom,N,n,C,R,mode,extCoeff);
+    [dataX] = getPts(pars.geom,pars.N,n,C,R,pars.mode,extCoeff);
     xc = dataX.nodes;                                     
     % 
     % Get evaluation points (xe)
     %
-    if strcmp(mode,"collocation")       
-        M = N;                                      % Number of evaluation points (Y)
+    if strcmp(pars.mode,"collocation")       
+        M = pars.N;                             
         dataY = dataX;
         xe = dataY.nodes;
     else
-        M = ceil(q*N);                                    % Number of evaluation points (Y)
-        [dataY] = getPts(geom,M,n,C,R,"fitted",0);
+        M = ceil(pars.q*pars.N);                              
+        [dataY] = getPts(pars.geom,M,n,C,R,"fitted",0);
         %
         % Move evaluation points inside (and on the boundary) to the closest center point.
         % Make sure not to move two evaluation points to the same center point. All
         % center points should be moved to.
         %
-        if mvCentres && ~strcmp(mode,"collocation")
+        if pars.mvCentres && ~strcmp(pars.mode,"collocation")
             dataY = movePts(dataX,dataY);
         end
         xe = dataY.nodes;
@@ -88,22 +87,24 @@ if strcmp(method,'FD')
     %
     % Ensure center points are not too far from boundary and make evaluation point - stencil list 
     %
-    if strcmp(mode,"unfitted")
-        xc = xc(unique(knnsearch(xc,xe,'K',ceil(extCoeff*n+eps(1)))),:);
+    if strcmp(pars.mode,"unfitted")
+        xc = xc(unique(knnsearch(xc,xe,'K',ceil(extCoeff*n+pars.ep))),:);
         N = size(xc,1);
+    else 
+        N = pars.N;
     end
     ptStencilList = knnsearch(xc,xe,'K',1);
-elseif strcmp(method,'PUM')
+elseif strcmp(pars.method,'PUM')
     %
-    % Get patches  
+    % Get patches 
     %
-    ptch = getPtch(geom,P,C,R,del);
+    ptch = getPtch(pars.geom,pars.P,C,R,pars.del);
     P = length(ptch.R);
     %
-    % Get centre (xc)
+    % Get centre points (xc)
     %
-    if strcmp(mode,"unfitted")
-        dataX.nodes = [];            % Centers
+    if strcmp(pars.mode,"unfitted")
+        dataX.nodes = [];
         for i = 1:P
             [ptch.xc(i)] = getPts("ball",n,0,ptch.C(i,:),ptch.R(i),"unfitted",0);
             xCglobalId{i} = [(i-1)*n+1:i*n]';
@@ -111,23 +112,23 @@ elseif strcmp(method,'PUM')
         end
         xc = dataX.nodes;
         [ptch.xc.globalId] = xCglobalId{:};
-        if strcmp(geom,"ball")
+        if strcmp(pars.geom,"ball")
             dataX.inner = find(sqrt(sum((xc-C).^2,2))<=R);
-        elseif strcmp(geom,"cube")
+        elseif strcmp(pars.geom,"cube")
             dimLCoeff = [1 sqrt(2)/2 sqrt(3)/3];  
-            dataX.inner = find(all(abs(xc-C)<=dimLCoeff(dim)*R,2));
+            dataX.inner = find(all(abs(xc-C)<=dimLCoeff(pars.dim)*R,2));
         end
         dataX.outer = setdiff(1:size(xc,1),dataX.inner);
         dataX.bnd = [];
-    elseif strcmp(mode,"collocation")
-        dataX = getPts(geom,n*P,0,C,R,"fitted",0);
+    elseif strcmp(pars.mode,"collocation")
+        dataX = getPts(pars.geom,n*P,0,C,R,"fitted",0);
         xc = dataX.nodes;
         for i = 1:P
             ptch.xc(i).globalId = find(sqrt(sum((xc - ptch.C(i,:)).^2,2)) <= ptch.R(i));
             ptch.xc(i).nodes = xc(ptch.xc(i).globalId,:);
         end
-    elseif strcmp(mode,"fitted") 
-        dataX = getPts(geom,n*P,0,C,R,"fitted",0);
+    elseif strcmp(pars.mode,"fitted") 
+        dataX = getPts(pars.geom,n*P,0,C,R,"fitted",0);
         xc = dataX.nodes;
         for i = 1:P
             ptch.xc(i).globalId = find(sqrt(sum((xc - ptch.C(i,:)).^2,2)) <= ptch.R(i));
@@ -137,14 +138,14 @@ elseif strcmp(method,'PUM')
     %
     % Get evaluation points (xe)
     %
-    q = max(q*double(~strcmp(mode,"collocation")),1);
+    q = max(pars.q*double(~strcmp(pars.mode,"collocation")),1);
     M = ceil(n*P*q);  
-    if ~strcmp(mode,"collocation")
-        dataY = getPts(geom,M,0,C,R,"fitted",0);
+    if ~strcmp(pars.mode,"collocation")
+        dataY = getPts(pars.geom,M,0,C,R,"fitted",0);
         %
-        % Move evaluation points inside (and on the boundary) to the closest center point.
+        % Move evaluation points inside (and on the boundary) to the closest center point
         %
-        if mvCentres && ~strcmp(mode,"collocation")
+        if pars.mvCentres && ~strcmp(pars.mode,"collocation")
             dataY = movePts(dataX,dataY);
         end
         xe = dataY.nodes;
@@ -154,23 +155,23 @@ elseif strcmp(method,'PUM')
         end
     else
         dataY = dataX;
-        xe = xc;        % Centers
+        xe = xc; 
         ptch.xe = ptch.xc;
     end
     N = size(xc,1);
 end
 %
-% Constructing global LS-RBF-FD approximation to evaluation and Laplace operators M x N
+% Constructing global approximation to evaluation and Laplace operators
 %
-if strcmp(method,'FD')
-    [L,B, Eglobal, Lglobal] = conGlobMat(dataY,M,N,n,prob,phi,psi,ep,pdeg,ptStencilList,xc,xe);
-elseif strcmp(method,'PUM')
-    [L,B, Eglobal, Lglobal] = conGlobMat(dataY,M,N,n,prob,phi,psi,ep,pdeg,ptch);
+if strcmp(pars.method,'FD')
+    [L,B, Eglobal, Lglobal] = conGlobMat(dataY,M,N,n,pars.prob,pars.phi,pars.psi,pars.ep,pars.pdeg,ptStencilList,xc,xe);
+elseif strcmp(pars.method,'PUM')
+    [L,B, Eglobal, Lglobal] = conGlobMat(dataY,M,N,n,pars.prob,pars.phi,pars.psi,pars.ep,pars.pdeg,ptch);
 end
 %
 % Manufactured solution to construct forcing and BC
 %
-if dim == 1
+if pars.dim == 1
     fun = @(x) sin(2.*pi.*x);
     lapFun = @(x) -4.*(pi.^2).*sin(2.*pi.*x);
     F = [lapFun(xe(dataY.inner,1)); fun(xe(dataY.bnd,1))];
@@ -178,7 +179,7 @@ if dim == 1
     ucExact = fun(xc(:,1));
     lapAnalytic = lapFun(xe(dataY.inner,1));
     bndAnalytic = [0; 0];
-elseif dim == 2
+elseif pars.dim == 2
     fun = @(x,y) sin(2.*pi.*x.*y);
     lapFun = @(x,y) - 4.*(x.^2).*(pi.^2).*sin(2.*pi.*x.*y) - 4.*(y.^2).*(pi.^2).*sin(2.*pi.*x.*y);
     F = [lapFun(xe(dataY.inner,1),xe(dataY.inner,2)); fun(xe(dataY.bnd,1),xe(dataY.bnd,2))];
@@ -186,7 +187,7 @@ elseif dim == 2
     ucExact = fun(xc(:,1),xc(:,2));
     lapAnalytic = lapFun(xe(dataY.inner,1),xe(dataY.inner,2));
     bndAnalytic = fun(xe(dataY.bnd,1),xe(dataY.bnd,2));
-elseif dim == 3
+elseif pars.dim == 3
     fun = @(x,y,z) sin(2.*pi.*x.*y.*z);
     lapFun = @(x,y,z) - 4.*(x.^2).*(y.^2).*(pi.^2).*sin(2.*pi.*x.*y.*z) - 4.*(y.^2).*(z.^2).*(pi.^2).*sin(2.*pi.*x.*y.*z) - 4.*(x.^2).*(z.^2).*(pi.^2).*sin(2.*pi.*x.*y.*z);
     F = [lapFun(xe(dataY.inner,1),xe(dataY.inner,2),xe(dataY.inner,3)); fun(xe(dataY.bnd,1),xe(dataY.bnd,2),xe(dataY.bnd,3))];
@@ -200,7 +201,7 @@ end
 %
 [~,dist] = knnsearch(xc,xc,'K',2);
 h = max(dist(:,2));
-if scaling && (strcmp(mode,"unfitted") || (strcmp(mode,"fitted") && strcmp(bcMode,"weak")))
+if pars.scaling && (strcmp(pars.mode,"unfitted") || (strcmp(pars.mode,"fitted") && strcmp(pars.bcMode,"weak")))
     Lscale = sqrt(dataY.Vol/length(dataY.inner));
     Bscale = sqrt(dataY.Area/length(dataY.bnd))*(h.^-1.5);
     L = Lscale.*L; B = Bscale.*B;
@@ -208,7 +209,7 @@ if scaling && (strcmp(mode,"unfitted") || (strcmp(mode,"fitted") && strcmp(bcMod
     F(dataY.bnd) = Bscale.*F(dataY.bnd);
 end
 
-if strcmp(mode,"fitted") && strcmp(bcMode,"strong")
+if strcmp(pars.mode,"fitted") && strcmp(pars.bcMode,"strong")
     Fmod = Lglobal(:,dataX.bnd)*ucExact(dataX.bnd);
     F = F-Fmod;
     L = Lglobal(:,dataX.inner);
@@ -218,19 +219,32 @@ end
 % Solution on centre points, evaluated on Y set
 %
 A = [L; B];
-testMemory(nnz(A),M,pars.memTol);
-tic
-u1 = A\F;
-toc
-[BI, BJ, BV] = find(A);
-pyB = py.scipy.sparse.csc_matrix({BV, {uint64(BI-1) uint64(BJ-1)}}, {uint64(size(A,1)), uint64(size(A,2))});
-tic
-u = double(py.cppFuncs.sparseSolve(pyB,py.numpy.array(F,copy=false,order='F')))';
-toc
+if pars.cppOn
+    testMemory(nnz(A),M,pars.memTol);
+    [BI, BJ, BV] = find(A);
+    row  = np.array(BI - 1).reshape(int32(-1));
+    col  = np.array(BJ - 1).reshape(int32(-1));
+    data = np.array(BV,pyargs('dtype', 'float64')).reshape(int32(-1));
+    pyB = sp.csc_matrix({data,{row, col}}, {int32(size(A,1)), int32(size(A,2))});
+    u = double(cpp.sparseSolve(pyB,np.array(F,pyargs('dtype', 'float64')),pars.debug))';
+    if pars.debug && pars.display
+        disp(['RBFsolver: c++ sparse QR solver solve time was ', num2str(u(end)), 's']);
+        sTimeCpp = u(end);
+        u(end) = [];
+    end
+else
+    if pars.debug
+        tic
+        u = A\F;
+        sTimeMat = toc;
+    else
+        u = A\F;
+    end
+end
 %
 % Fix operators to compute error measures
 %
-if strcmp(mode,"fitted") && strcmp(bcMode,"strong")
+if strcmp(pars.mode,"fitted") && strcmp(pars.bcMode,"strong")
     u = [u; ucExact(dataX.bnd)];
 end
 ue = Eglobal*u;
@@ -238,23 +252,23 @@ l2Error = norm(abs(ue-uExact),2)/norm(uExact,2);
 %
 % Displaying output 
 %
-if display
-    if strcmp(method,'FD')
+if pars.display
+    if strcmp(pars.method,'FD')
         figure()
         hold on;
-    elseif strcmp(method, 'PUM')
-        plotPtch(ptch,geom,C,R)
+    elseif strcmp(pars.method, 'PUM')
+        plotPtch(ptch,pars.geom,C,R)
         hold on
     end
-    if dim == 1
+    if pars.dim == 1
         evalPtPlot = plot(xe,zeros(size(xe,1),1),'b.');
         centerPtPlot = plot(xc,zeros(size(xc,1),1),'rx');
-    elseif dim == 2
+    elseif pars.dim == 2
         centerPtPlot = plot(xc(:,1),xc(:,2),'rx','MarkerSize',8,'LineWidth',3);
-        if ~strcmp(mode,"collocation")
+        if ~strcmp(pars.mode,"collocation")
             evalPtPlot = plot(xe(:,1),xe(:,2),'b.','MarkerSize',8);
         end
-    elseif dim == 3
+    elseif pars.dim == 3
         evalPtPlot = plot3(xe(:,1),xe(:,2),xe(:,3),'b.');
         centerPtPlot = plot3(xc(:,1),xc(:,2),xc(:,3),'rx');
     end
@@ -266,25 +280,25 @@ if display
     axis equal
     xlim([-1.65 1.65]);
     ylim([-1.5 1.3]);
-    if strcmp(mode,"unfitted")
-        if strcmp(method,'FD')
+    if strcmp(pars.mode,"unfitted")
+        if strcmp(pars.method,'FD')
             l = legend('Node points','Eval points','Interpreter','latex','location','south','Orientation','Horizontal');
-        elseif strcmp(method,'PUM')
+        elseif strcmp(pars.method,'PUM')
             l = legend('Patches','Node points','Eval points','Interpreter','latex','location','south','Orientation','Horizontal');
             l.NumColumns = 2;
         end
         l.FontSize = 20; 
     else
-        if strcmp(method,'FD')
+        if strcmp(pars.method,'FD')
             l = legend('Node points','Interpreter','latex','location','south','Orientation','Horizontal');
-        elseif strcmp(method,'PUM')
+        elseif strcmp(pars.method,'PUM')
             l = legend('Patches','Node points','Interpreter','latex','location','south','Orientation','Horizontal');
         end
         l.FontSize = 20; 
     end
 
     % Plotting 
-    plotSolution(ue,uExact,xe,dataY.bnd,dim,geom);
+    plotSolution(ue,uExact,xe,dataY.bnd,pars.dim,pars.geom);
     %
     % Operator and solution l2 errors
     %
