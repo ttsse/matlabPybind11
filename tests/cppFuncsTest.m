@@ -42,15 +42,13 @@ if display
     disp(['cppFuncTest: Eigen solve time for dense system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for dense system: ', num2str(tCpp), 's'])
     disp(['cppFuncTest: Matlab solve time for dense system: ', num2str(tMatlab), 's'])
-    if ~setdiff(xDenseMat,xDenseCpp')
-        disp("cppFuncTest: Dense solve solution incorrect!");
-    else
-        disp("cppFuncTest: Dense solve solution OK!");
-    end
     disp(' ');
 end
 tOut.dense = [tCppInFunc, tCpp, tMatlab];
-
+%
+% Check if solution from C++ is close enough to Matab solution
+%
+assert(all(isapprox(xDenseMat,xDenseCpp','loose')),"cppFuncTest: Dense solve solution incorrect!")
 %
 % Solve dense LS system
 %
@@ -72,13 +70,13 @@ if display
     disp(['cppFuncTest: Eigen solve time for dense LS system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for dense LS system: ', num2str(tCpp), 's'])
     disp(['cppFuncTest: Matlab solve time for dense LS system: ', num2str(tMatlab), 's'])
-    if ~setdiff(xDenseLSmat,xDenseLScpp')
-        disp("cppFuncTest: Dense LS solve solution incorrect!");
-    else
-        disp("cppFuncTest: Dense LS solve solution OK!");
-    end
     disp(' ');
 end
+%
+% Check if solution from C++ is close enough to Matab solution
+%
+assert(all(isapprox(xDenseLSmat,xDenseLScpp','loose')),"cppFuncTest: Dense LS solve solution incorrect!")
+
 tOut.denseLS = [tCppInFunc, tCpp, tMatlab];
 
 %
@@ -110,13 +108,13 @@ if display
     disp(['cppFuncTest: Eigen solve time for sparse system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for sparse system: ', num2str(tCpp), 's'])
     disp(['cppFuncTest: Matlab solve time for sparse system: ', num2str(tMatlab), 's'])
-    if ~setdiff(xSparseMat,xSparseCpp')
-        disp("cppFuncTest: Dense LS solve solution incorrect!");
-    else
-        disp("cppFuncTest: Dense LS solve solution OK!");
-    end
     disp(' ');
 end
+%
+% Check if solution from C++ is close enough to Matab solution
+%
+assert(all(isapprox(xSparseMat,xSparseCpp','loose')),"cppFuncTest: Sparse solve solution incorrect!")
+
 tOut.sparse = [tCppInFunc, tCpp, tMatlab];
 
 %
@@ -148,13 +146,13 @@ if display
     disp(['cppFuncTest: Eigen solve time for sparse LS system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for sparse LS system: ', num2str(tCpp), 's'])
     disp(['cppFuncTest: Matlab solve time for sparse LS system: ', num2str(tMatlab), 's'])
-    if ~setdiff(xSparseLSmat,xSparseLScpp')
-        disp("cppFuncTest: Dense LS solve solution incorrect!");
-    else
-        disp("cppFuncTest: Dense LS solve solution OK!");
-    end
     disp(' ');
 end
+%
+% Check if solution from C++ is close enough to Matab solution
+%
+assert(all(isapprox(xSparseLSmat,xSparseLScpp','loose')),"cppFuncTest: Dense LS solve solution incorrect!")
+
 tOut.sparseLS = [tCppInFunc, tCpp, tMatlab];
 
 end

@@ -84,8 +84,8 @@ function pars = setPars(varargin)
     pars.memTol = 0.1;                        
     pars.del = 0.4;       
     pars.rbfdeg = 4;     
-    pars.P = 250; 
-    pars.N = 15;
+    pars.P = 50; 
+    pars.N = 200;
     pars.extCoeff = 0.5;
     pars.q = 3;                     
     pars.ep = 0.1;     
@@ -97,7 +97,7 @@ function pars = setPars(varargin)
     for i = (pin+1):2:nargin
         
         if ~ismember(varargin{i},fieldName(:,1))
-            error("Argument %i should be a string equal to the name of an available parameter.",i);
+            error("setPars: Argument %i should be a string equal to the name of an available parameter.",i);
         end
         
         fld = find(fieldName(:,1) == varargin{i});
@@ -116,7 +116,7 @@ function pars = setPars(varargin)
         else
         end
         if ~istype
-              error("""%s"" should be of the expected data type.",varargin{i});
+              error("setPars: ""%s"" should be of the expected data type.",varargin{i});
         end
     
         pars.(fieldName(fld,1)) = varargin{i+1};

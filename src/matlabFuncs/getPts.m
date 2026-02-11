@@ -6,7 +6,7 @@
 %                   n           -> Positive int. Number of point in each
 %                                  stencil (RBF-FD case).
 %                   C           -> Double 1xd array of domain centre in d dimensions. 
-%                   R           -> Double domain radius.
+%                   R           -> Double. Domain radius.
 %                   mode        -> String. Solve mode [ "unfitted" | "fitted" | "collocation"]
 %                   extCoeff    -> Double. Fraction of stencil to extend
 %                                  cover in case of "unfitted" mode.
