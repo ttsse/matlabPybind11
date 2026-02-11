@@ -1,6 +1,11 @@
+% -------------------------------------------------------------------------
+% plotPtch.m -- Plotting solution from RBFsolve in 1D, 2D or 3D. See use in
+%               function.
+% Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
-% Plotting routines
-%
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
 function [] = plotSolution(uNumeric,uAnalytic,x,idB,dim,geom)
     err = uNumeric-uAnalytic;
     if dim == 1
@@ -122,6 +127,6 @@ function [] = plotSolution(uNumeric,uAnalytic,x,idB,dim,geom)
         ylabel(cb,"$$u-u_E$$","Interpreter","latex","FontSize",24,'Rotation',90)
         shading interp
     else
-        disp("No plotting availablein 3D for this geometry")
+        disp("plotSolution: No plotting available in 3D for this geometry")
     end
 end

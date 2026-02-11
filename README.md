@@ -10,20 +10,26 @@ MATLAB version R2023a is required, as well as the following toolboxes:
 - Image Processing Toolbox
 
 The conda package manager is needed to install the required libraries. (See https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). 
+## Libraries used lisences
+The following libraries are installed in the conda environment. Note the distribution lisence for each library prior to the use of this code:
+ - 
+ -
 
-# Windows
+## Windows
 For Windows, Microsoft Visual Studio 2019 is required, as well as the the Microsoft Visual C++ (MSVC) compiler toolset. (See https://code.visualstudio.com/docs/cpp/config-msvc).
 To create the required environment execute the following in the x64 Native Tools Command Prompt for VS:
 ```
 conda create --name TTSSE --file condaEnvWin.yml
 ```
-# Linux and macOS
+Next activate the environment:
+```
+conda activate TTSSE
+```
+## Linux and macOS
 For Linux or macOS execute the following in a terminal:
 ```
 conda create --name TTSSE --file condaEnvLinux.yml
 ```
-
-All other steps are the same for all operating stsyems.
 Next activate the environment:
 ```
 conda activate TTSSE

@@ -1,6 +1,7 @@
 /*
-    solvers.cpp -- creating pybind11 bindings for Eigen library
-    Copyright (c) 2023 Andreas Michael <andreas.michael@it.uu.se>
+    solvers.cpp -- creating pybind11 bindings for Eigen library. All 
+                   relevant functions.
+    Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file.

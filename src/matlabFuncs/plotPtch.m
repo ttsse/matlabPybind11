@@ -1,6 +1,20 @@
+% -------------------------------------------------------------------------
+% plotPtch.m -- Plotting patches in 1D, 2D or 3D.
+% Inputs     -- ptch    -> Patch structure. See getPtch.
+%               geom    -> Geometry to solve, geom = "cube" or "ball".
+%               C       -> Double 1xd array of domain centre in 
+%                                      d dimensions.
+%               R       -> Double. Domain radius.
+% Syntax     -- pars = setPars;
+%               n = nchoosek(pars.rbfdeg+pars.dim,pars.dim);
+%               [ptch, dataX, dataY] = getPtch([0,0],1,n,pars);
+%               plotPtch(ptch,'ball',[0,0],1);
 %
-% Patch plotting routine
+% Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
+% All rights reserved. Use of this source code is governed by a
+% BSD-style license that can be found in the LICENSE file.
+% -------------------------------------------------------------------------
 function [] = plotPtch(ptch,geom,C,R)
     theta = linspace(0,2*pi,100)';
     dim = size(C,2);
