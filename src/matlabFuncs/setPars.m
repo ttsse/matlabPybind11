@@ -29,8 +29,8 @@ function pars = setPars(varargin)
         disp("         ep: Shape parameter (smooth phi) [ positive scalar {0.1} ], order for 'phs' [ positive integer {3} ] ")
         disp("       pdeg: Degree of polynomial added to basis, p [ positive integer | 0 | {-1} ]")
         disp("     memTol: Tolerance used to return error when system is too large to solve with cpp library [ positive scalar {0.1} ]")
-        disp("        del: Relative overlap between patches [ positive scalar {0.4} ]")
-        disp("          q: Oversampling factor between nodes and evaluation points [ positive scalar > 1 {3} ]")
+        disp("        del: Relative overlap between patches [ positive scalar <= 1 {0.4} ]")
+        disp("          q: Oversampling factor between nodes and evaluation points [ positive scalar >= 1 {3} ]")
         disp("     rbfdeg: Polynomial degree localy supported by either patches or stencils in case of smooth basis [ positive integer ]")
         disp("          P: Number of generated patches for PU methods [ positive integer {50} ]")
         disp("          N: Global number of centre/node points for FD methods [ positive integer {200} ] ")
@@ -56,8 +56,8 @@ function pars = setPars(varargin)
                  "ep", 'epType';
                  "pdeg", 'positiveMinusOneInt';
                  "memTol", 'positiveDouble';
-                 "del", 'positiveDoublePlusOne';
-                 "q", 'positiveDouble';
+                 "del", 'positiveDoubleLessOne';
+                 "q", 'positiveDoublePlusOne';
                  "rbfdeg", 'positiveInt';
                  "P", 'positiveInt';
                  "N", 'positiveInt';
@@ -97,7 +97,7 @@ function pars = setPars(varargin)
     for i = (pin+1):2:nargin
         
         if ~ismember(varargin{i},fieldName(:,1))
-            error("setPars: Argument %i should be a string equal to the name of an available parameter.",i);
+            error("setPars:IncorrectArg","setPars: Argument %i should be a string equal to the name of an available parameter.",i);
         end
         
         fld = find(fieldName(:,1) == varargin{i});
@@ -116,7 +116,7 @@ function pars = setPars(varargin)
         else
         end
         if ~istype
-              error("setPars: ""%s"" should be of the expected data type.",varargin{i});
+              error("setPars:IncorrectType","setPars: ""%s"" should be of the expected data type.",varargin{i});
         end
     
         pars.(fieldName(fld,1)) = varargin{i+1};
@@ -212,4 +212,8 @@ end
 
 function isf = ispositiveDoublePlusOne(data)
   isf = all(isnumeric(data) & data>=1);
+end
+
+function isf = ispositiveDoubleLessOne(data)
+  isf = all(isnumeric(data) & data<=1);
 end
