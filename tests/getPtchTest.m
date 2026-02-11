@@ -13,7 +13,10 @@ end
 % different parameters)
 %
 function setupOnce(testCase) 
-    pars = setPars("mode",'unfitted',"geom",'ball',"dim",3);
+    pars = setPars("mode",'unfitted',"geom",'cube',"dim",2,"del",0.01);
+    % pars = setPars("mode",'unfitted',"geom",'cube',"dim",3,"del",0.01);
+    % pars = setPars("mode",'unfitted',"geom",'ball',"dim",2,"del",0.01);
+    % pars = setPars("mode",'unfitted',"geom",'ball',"dim",3,"del",0.01);
     n = nchoosek(pars.rbfdeg+pars.dim,pars.dim);
     [ptch,dataX,dataY] = getPtch(zeros(1,pars.dim),1,n,pars);
     testCase.TestData.SharedData = {pars,n,ptch,dataX,dataY};
@@ -71,7 +74,7 @@ function testOutputFields(testCase)
     end
 end
 % 
-% Test to see if domain is fully covered by patches
+% Test to see if domain is fully covered
 %
 function testCover(testCase)
     [pars,n,ptch,dataX,dataY] = testCase.TestData.SharedData{:};
@@ -81,7 +84,28 @@ function testCover(testCase)
     [dataTest] = getPts(pars.geom,10000,0,zeros(1,pars.dim),1,'fitted',0);
     inCover = zeros(size(dataTest.nodes,1),1);
     for i = 1:size(dataTest.nodes,1)
-        inCover(i) = any(sqrt(sum((dataTest.nodes(i,:) - ptch.C).^2,2)) <= ptch.R);
+        distToCentre = sqrt(sum((dataTest.nodes(i,:) - ptch.C).^2,2));
+        inCover(i) = any(distToCentre <= ptch.R);
     end
     verifyTrue(testCase,all(inCover));
+end
+%
+% Tests robustness to spurious input (test one input at a time)
+%
+function testGetPtchInput(testCase)
+    [pars,n,ptch,dataX,dataY] = testCase.TestData.SharedData{:};
+    C = [0,0,5,3];
+    verifyError(testCase,@() getPtch(C,1,n,pars),"getPtch:IncorrectType");
+    C = zeros(1,pars.dim);
+    R = -1;
+    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
+    C = zeros(1,pars.dim);
+    R = 1;
+    n = 0.1;
+    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
+    C = zeros(1,pars.dim);
+    R = 1;
+    n = 5;
+    pars.extra = 1;
+    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
 end

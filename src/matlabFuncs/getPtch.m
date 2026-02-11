@@ -34,6 +34,20 @@
 % BSD-style license that can be found in the LICENSE file.
 % -------------------------------------------------------------------------
 function [ptch,dataX,dataY] = getPtch(C,R,n,pars)
+    %
+    % Check input
+    %
+    if ~isPars(pars)
+        error("getPtch:IncorrectType","getPtch: pars should be a structure as given by setPars function.")
+    elseif ~isnumeric(C) || ~isequal(size(C),[1, pars.dim])
+        error("getPtch:IncorrectType","getPtch: C should be a double 1xd array giving the domain centre.")
+    elseif ~isnumeric(R) || ~(R>0)
+        error("getPtch:IncorrectType","getPtch: R should be a double scalar giving the domain radius.")
+    elseif ~isnumeric(n) || ~((n==floor(n)) && n>0)
+        error("getPtch:IncorrectType","getPtch: n should be a double scalar giving the number of centre points in each patch.")
+    end
+
+
     dim = size(C,2);
     %
     % Radius of Cartesian grid
@@ -52,17 +66,17 @@ function [ptch,dataX,dataY] = getPtch(C,R,n,pars)
     % Place centres on grid 
     %
     if dim == 1
-        Cx = linspace(-1+dimLCoeff(dim)*(1-pars.del)*ptch.R,1-dimLCoeff(dim)*(1-pars.del)*ptch.R,ceil(P^(1/dim)));
+        Cx = linspace((-Rsq+(1-pars.del)*ptch.R)*dimLCoeff(dim),(Rsq-(1-pars.del)*ptch.R)*dimLCoeff(dim),ceil(P^(1/dim)));
         ptch.C = Cx(:);
     elseif dim == 2
-        Cx = linspace(-1+dimLCoeff(dim)*(1-pars.del)*ptch.R,1-dimLCoeff(dim)*(1-pars.del)*ptch.R,ceil(P^(1/dim)));
-        Cy = linspace(-1+dimLCoeff(dim)*(1-pars.del)*ptch.R,1-dimLCoeff(dim)*(1-pars.del)*ptch.R,ceil(P^(1/dim)));
+        Cx = linspace((-Rsq+(1-pars.del)*ptch.R)*dimLCoeff(dim),(Rsq-(1-pars.del)*ptch.R)*dimLCoeff(dim),ceil(P^(1/dim)));
+        Cy = linspace((-Rsq+(1-pars.del)*ptch.R)*dimLCoeff(dim),(Rsq-(1-pars.del)*ptch.R)*dimLCoeff(dim),ceil(P^(1/dim)));
         [Cx,Cy] = meshgrid(Cx,Cy);
         ptch.C = [Cx(:),Cy(:)];
     elseif dim == 3
-        Cx = linspace(-1+dimLCoeff(dim)*(1-pars.del)*ptch.R,1-dimLCoeff(dim)*(1-pars.del)*ptch.R,ceil(P^(1/dim)));
-        Cy = linspace(-1+dimLCoeff(dim)*(1-pars.del)*ptch.R,1-dimLCoeff(dim)*(1-pars.del)*ptch.R,ceil(P^(1/dim)));
-        Cz = linspace(-1+dimLCoeff(dim)*(1-pars.del)*ptch.R,1-dimLCoeff(dim)*(1-pars.del)*ptch.R,ceil(P^(1/dim)));
+        Cx = linspace((-Rsq+(1-pars.del)*ptch.R)*dimLCoeff(dim),(Rsq-(1-pars.del)*ptch.R)*dimLCoeff(dim),ceil(P^(1/dim)));
+        Cy = linspace((-Rsq+(1-pars.del)*ptch.R)*dimLCoeff(dim),(Rsq-(1-pars.del)*ptch.R)*dimLCoeff(dim),ceil(P^(1/dim)));
+        Cz = linspace((-Rsq+(1-pars.del)*ptch.R)*dimLCoeff(dim),(Rsq-(1-pars.del)*ptch.R)*dimLCoeff(dim),ceil(P^(1/dim)));
         [Cx,Cy,Cz] = meshgrid(Cx,Cy,Cz);
         ptch.C = [Cx(:),Cy(:),Cz(:)];
     end
