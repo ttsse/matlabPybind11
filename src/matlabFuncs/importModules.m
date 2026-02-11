@@ -33,10 +33,10 @@ function [varargout] = importModules
     if exist([cmdOut, pyPath])
         pyenv(Version=[cmdOut, pyPath]);
     else
-        error("cppFuncTest: Install conda (miniconda or anaconda) and generate environment as instructed before running this code")
+        error("cppFuncTest:noConda","cppFuncTest: Install conda (miniconda or anaconda) and generate environment as instructed before running this code.")
     end
     %
-    % Import python libraries
+    % Import python libraries (more can be added here)
     %
     pyenv("ExecutionMode","OutOfProcess");
     varargout{1} = py.importlib.import_module('cppFuncs');
