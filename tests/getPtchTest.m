@@ -22,6 +22,27 @@ function setupOnce(testCase)
     testCase.TestData.SharedData = {pars,n,ptch,dataX,dataY};
 end
 %
+% Tests robustness to spurious input (test one input at a time)
+%
+function testGetPtchInput(testCase)
+    [pars,n,ptch,dataX,dataY] = testCase.TestData.SharedData{:};
+    C = [0,0,5,3];
+    verifyError(testCase,@() getPtch(C,1,n,pars),"getPtch:IncorrectType");
+    C = zeros(1,pars.dim);
+    R = -1;
+    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
+    C = zeros(1,pars.dim);
+    R = 1;
+    n = 0.1;
+    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
+    C = zeros(1,pars.dim);
+    R = 1;
+    n = 5;
+    pars.extra = 1;
+    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
+    verifyError(testCase,@() getPtch(C,R,n),"getPtch:IncorrectType");
+end
+%
 % Tests output types
 %
 function testOutputTypes(testCase)
@@ -88,24 +109,4 @@ function testCover(testCase)
         inCover(i) = any(distToCentre <= ptch.R);
     end
     verifyTrue(testCase,all(inCover));
-end
-%
-% Tests robustness to spurious input (test one input at a time)
-%
-function testGetPtchInput(testCase)
-    [pars,n,ptch,dataX,dataY] = testCase.TestData.SharedData{:};
-    C = [0,0,5,3];
-    verifyError(testCase,@() getPtch(C,1,n,pars),"getPtch:IncorrectType");
-    C = zeros(1,pars.dim);
-    R = -1;
-    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
-    C = zeros(1,pars.dim);
-    R = 1;
-    n = 0.1;
-    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
-    C = zeros(1,pars.dim);
-    R = 1;
-    n = 5;
-    pars.extra = 1;
-    verifyError(testCase,@() getPtch(C,R,n,pars),"getPtch:IncorrectType");
 end

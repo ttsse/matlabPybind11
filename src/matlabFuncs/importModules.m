@@ -33,12 +33,13 @@ function [varargout] = importModules
     if exist([cmdOut, pyPath])
         pyenv(Version=[cmdOut, pyPath]);
     else
-        error("cppFuncTest:noConda","cppFuncTest: Install conda (miniconda or anaconda) and generate environment as instructed before running this code.")
+        error("cppFuncTest:noConda","cppFuncTest: Install conda (miniconda or anaconda) and generate environment before running this code.")
     end
     %
     % Import python libraries (more can be added here)
     %
     pyenv("ExecutionMode","OutOfProcess");
+    py.sys.path().append("../"); % To work in tests
     varargout{1} = py.importlib.import_module('cppFuncs');
     varargout{2} = py.importlib.import_module('numpy');
     varargout{3} = py.importlib.import_module('scipy.sparse');

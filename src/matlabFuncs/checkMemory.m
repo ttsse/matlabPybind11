@@ -3,9 +3,8 @@
 %                   limited to 2GB. This funciton is used to stop the
 %                   program and print an error before a crash is
 %                   induced (see RBFsolver, cppFuncTest as examples). 
-% Inputs         -- N       -> Positive int. Number of non zeros in A from system 
-%                              Ax = b.
-%                   M       -> Positive int. Number of elements in b.
+% Inputs         -- A       -> Double MxN array.
+%                   b       -> Double Mx1 array.
 %                   tol     -> Positive double. Tolerance used as safety
 %                              factor.
 % Syntax         -- A = rand(100,100); b = rand(100,1);
@@ -16,12 +15,17 @@
 % All rights reserved. Use of this source code is governed by a
 % BSD-style license that can be found in the LICENSE file.
 % -------------------------------------------------------------------------
-function [] = testMemory(N,M,tol)
+function [] = checkMemory(A,b,tol)
 
-memSize = N*8*1e-9 + M*8*1e-9;
+allVars = whos;
+totBytes = 0;
+for i = 1:length(allVars)
+    totBytes = allVars(i).bytes + totBytes; 
+end
+totBytes = totBytes/1024^3;
 
-if memSize >= 2 - tol*2 && pyenv().ExecutionMode == "OutOfProcess"
-    error("testMemory:outOfMemory","testMemory: System is too large to solve");
+if totBytes >= 2 - tol*2 && pyenv().ExecutionMode == "OutOfProcess"
+    error("checkMemory:outOfMemory","checkMemory: System is too large to solve");
 end
 
 end
