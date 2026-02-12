@@ -27,52 +27,32 @@ end
 % Tests robustness to spurious input
 %
 function testInputsType2(testCase)
-    input = {"dim",4};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"memTol",-0.1};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"q",0.9};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"pdeg",-2};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"pdeg",0.5};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"rbfdeg",0};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"geom",'cone'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"prob",'Heat'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"method",'FEM'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"mode",'uCollocation'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"bcMode",2};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"scaling",1.5};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"display",3};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"mvCentres",'FEM'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"psi",0.1};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"phi",'w2'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"ep",-1};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"del",1.1};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"P",12.1};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"N",0};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"extCoeff",0};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"cppOn",0.1};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
-    input = {"debug",'yes'};
-    verifyError(testCase,@() callWithOutput(input),"setPars:IncorrectType");
+    input{1} = {"dim",4};
+    input{2} = {"memTol",-0.1};
+    input{3} = {"q",0.9};
+    input{4} = {"pdeg",-2};
+    input{5} = {"pdeg",0.5};
+    input{6} = {"rbfdeg",0};
+    input{7} = {"geom",'cone'};
+    input{8} = {"prob",'Heat'};
+    input{9} = {"method",'FEM'};
+    input{10} = {"mode",'uCollocation'};
+    input{11} = {"bcMode",2};
+    input{12} = {"scaling",1.5};
+    input{13} = {"display",3};
+    input{14} = {"mvCentres",'FEM'};
+    input{15} = {"psi",0.1};
+    input{16} = {"phi",'w2'};
+    input{17} = {"ep",-1};
+    input{18} = {"del",1.1};
+    input{19} = {"P",12.1};
+    input{20} = {"N",0};
+    input{21} = {"extCoeff",0};
+    input{22} = {"cppOn",0.1};
+    input{23} = {"debug",'yes'};
+    for i = 1:length(input)
+        verifyError(testCase,@() callWithOutput(input{i}),"setPars:IncorrectType");
+    end
 end
 function testInputsArg(testCase)
     input = {"wrong",4,"phi",'mq',"P",10};

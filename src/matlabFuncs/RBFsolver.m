@@ -17,7 +17,7 @@
 %                   results.solveTime   -> Double. Solve time in seconds.
 % Syntax         -- pars = setPars;
 %                   [cpp, np, sp] = importModules;
-%                   [l2Error, h] = RBFsolver(pars, cpp, np, sp)   
+%                   results = RBFsolver(pars, cpp, np, sp)   
 %
 % Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
@@ -25,12 +25,19 @@
 % BSD-style license that can be found in the LICENSE file.
 % -------------------------------------------------------------------------
 function results = RBFsolver(pars,varargin)
-
+%
+% Check input
+%
+if nargin > 4 || nargin < 1
+    error("RBFsolver:IncorrectType","RBFsolver: Incorrect number of inputs.")
+elseif ~isPars(pars)
+    error("RBFsolver:IncorrectType","RBFsolver: pars should be a structure as given by setPars function.")
+end
 if pars.cppOn == 1 
     if nargin == 4 && (strcmp(underlyingType(varargin{1}),'py.module') && strcmp(underlyingType(varargin{2}),'py.module') && strcmp(underlyingType(varargin{3}),'py.module')) 
         [cpp, np, sp] = varargin{1:3};
     else
-        error("RBFsolver: If parameter cppOn = 1, function requires python modules cpp, np, sp. Run [cpp, np, sp] = importModules and then RBFsolver(pars,cpp,np,sp).");
+        error("RBFsolver:IncorrectType","RBFsolver: If parameter cppOn = 1, function requires python modules cpp, np, sp. Run [cpp, np, sp] = importModules and then RBFsolver(pars,cpp,np,sp).");
     end
 end
 % 
@@ -165,7 +172,7 @@ end
 %
 A = [L; B];
 if pars.cppOn   % Use c++ implementation
-    testMemory(nnz(A),pars.M,pars.memTol);
+    checkMemory(A,F,pars.memTol);
     [BI, BJ, BV] = find(A);
     row  = np.array(BI - 1).reshape(int32(-1));
     col  = np.array(BJ - 1).reshape(int32(-1));
@@ -266,6 +273,8 @@ results.ucExact = ucExact;
 results.uExact = uExact;
 results.l2Error = l2Error;
 results.h = h;
-results.solveTime = sTime;
+if pars.debug
+    results.solveTime = sTime;
+end
 end
 

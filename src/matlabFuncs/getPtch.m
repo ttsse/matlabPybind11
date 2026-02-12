@@ -37,7 +37,9 @@ function [ptch,dataX,dataY] = getPtch(C,R,n,pars)
     %
     % Check input
     %
-    if ~isPars(pars)
+    if nargin < 4
+        error("getPtch:IncorrectType","getPtch: Incorrect number of inputs.")
+    elseif ~isPars(pars)
         error("getPtch:IncorrectType","getPtch: pars should be a structure as given by setPars function.")
     elseif ~isnumeric(C) || ~isequal(size(C),[1, pars.dim])
         error("getPtch:IncorrectType","getPtch: C should be a double 1xd array giving the domain centre.")
