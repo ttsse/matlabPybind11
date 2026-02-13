@@ -8,6 +8,7 @@ MATLAB version R2023a is required, as well as the following toolboxes:
 - Statistics and Machine Learning Toolbox
 - Symbolic Math Toolbox
 - Image Processing Toolbox
+- Parallel Computing Toolbox
 
 The conda package manager is needed to install the required libraries. (See https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). 
 ## Libraries used lisences

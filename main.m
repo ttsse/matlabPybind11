@@ -9,8 +9,11 @@ clearvars;
 close all;
 %
 % Set path, modules and parameters
+
 %
 pathSet;
 [cpp, np, sp] = importModules;
-pars = setPars;
+pars = setPars("display",0,"debug",0,"cppOn",0,"P",500,"rbfdeg",5,"parOn",0);
+delete(gcp('nocreate'))
+p = parpool("processes", 8);
 results = RBFsolver(pars, cpp, np, sp);

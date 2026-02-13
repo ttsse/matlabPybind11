@@ -1,7 +1,9 @@
 % -------------------------------------------------------------------------
-% conGlobMat.m -- Compute global approximation matrices for domain and boundary
+% conGlobMatPar.m -- Compute global approximation matrices for domain and boundary
 %                 operators from problem "pars.prob".
-% Inputs         -- pars    -> Parameter structure, see setPars.
+% Inputs         -- pars    -> Parameter structure, see setPars. Should
+%                              include number of evaluation points, pars.M
+%                              and number of local points pars.n
 %                   dataY   -> Centre point structure. See getPts.
 %                   dataX   -> Evaluation point structure. See getPts.
 %                   ptch    -> if pars.method = 'PUM': patch structure, see
@@ -21,14 +23,14 @@
 %                   [ptch, dataX, dataY] = getPtch([0,0],1,n,pars);
 %                   pars.M = size(dataY.nodes,1);
 %                   pars.N = size(dataX.nodes,1); pars.n = n;
-%                   [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch);   
+%                   [L,B, Eglobal, Lglobal] = conGlobMatPar(pars,dataY,dataX,ptch);   
 %
 % Copyright (c) 2025 Andreas Michael <andreas.michael@it.uu.se>
 %
 % All rights reserved. Use of this source code is governed by a
 % BSD-style license that can be found in the LICENSE file.
 % -------------------------------------------------------------------------
-function [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch)
+function [L,B, Eglobal, Lglobal] = conGlobMatPar(pars,dataY,dataX,ptch)
     % Check input problem
     if ~strcmp(pars.prob,'Poisson')
         error("conGlobMat: Requested problem is not currently implemented")
@@ -40,17 +42,16 @@ function [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch)
         relXc = unique(ptch); % stencil centres that are used directly
         Eglobal = spalloc(pars.M,pars.N,pars.M*pars.n);
         Lglobal = spalloc(pars.M,pars.N,pars.M*pars.n);
-        [idX,~] = knnsearch(xc,xc(relXc,:),'K',pars.n);
-        [~,id1] = ismember(ptch,relXc);
         for i = 1:length(relXc)
-            xcLoc = xc(idX(i,:),:); % stencil
+            [idX,~] = knnsearch(xc,xc(relXc(i),:),'K',pars.n);
+            xcLoc = xc(idX,:); % stencil
             Psi = RBFInterpMat(pars.phi,pars.pdeg,pars.ep,xcLoc,xcLoc(1,:),max(sqrt(sum((xcLoc-xcLoc(1,:)).^2,2))));
             idY = find(ptch==relXc(i));
             E = RBFDiffMat(0,Psi,xe(idY,:));
             L = RBFDiffMat(1.5,Psi,xe(idY,:));
             
-            Eglobal(idY(i,:),idX(i,:)) = E + Eglobal(idY(i,:),idX(i,:));
-            Lglobal(idY(i,:),idX(i,:)) = L + Lglobal(idY(i,:),idX(i,:));
+            Eglobal(idY,idX) = E + Eglobal(idY,idX);
+            Lglobal(idY,idX) = L + Lglobal(idY,idX);
         end
         L = Lglobal(dataY.inner,:);
         B = Eglobal(dataY.bnd,:);
@@ -61,7 +62,7 @@ function [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch)
         % Initialise index and value cells usedfor sparse assembly
         iE = cell(P,1); jE = cell(P,1); Eval = cell(P,1);
         iL = cell(P,1); jL = cell(P,1); Lval = cell(P,1);
-        for i = 1:P
+        parfor i = 1:P
             Psi = RBFInterpMat(pars.phi,pars.pdeg,pars.ep,ptch.xc(i).nodes,ptch.C(i,:),ptch.R(i));
             E = RBFDiffMat(0, Psi, ptch.xe(i).nodes);
             B = RBFDiffMat(1, Psi, ptch.xe(i).nodes);
