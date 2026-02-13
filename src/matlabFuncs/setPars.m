@@ -37,6 +37,7 @@ function pars = setPars(varargin)
         disp("   extCoeff: Fraction of stencil used for the extension in unfitted RBF-FD method case [ positive scalar {0.5} ]")
         disp("      cppOn: Flag to choose whether to use generated c++ library [ 0 | {1} ]")
         disp("      debug: Debug flag specifically for cpp functions [ {0} | 1 ]")
+        disp("      parOn: Include parallelisation in implementation [ {0} | 1 ]")
         return
     end
     %
@@ -63,7 +64,8 @@ function pars = setPars(varargin)
                  "N", 'positiveInt';
                  "extCoeff", "positiveDouble";
                  "cppOn", "flag";
-                 "debug", "flag"]; 
+                 "debug", "flag";
+                 "parOn", "flag"]; 
     
     %
     % Set default values
@@ -91,7 +93,8 @@ function pars = setPars(varargin)
     pars.ep = 0.1;     
     pars.cppOn = 1;
     pars.debug = 1;
-      
+    pars.parOn = 0;
+
     pin = 0; % Indicates that the second parameter pars is not present
     
     for i = (pin+1):2:nargin

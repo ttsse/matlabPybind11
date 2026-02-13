@@ -120,7 +120,13 @@ end
 %
 % Constructing global approximation to evaluation and Laplace operators
 %
-[L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch);
+tic 
+if pars.parOn
+    [L,B, Eglobal, Lglobal] = conGlobMatPar(pars,dataY,dataX,ptch);
+else
+    [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch);
+end
+toc
 %
 % Manufactured solution to construct forcing and BC
 %

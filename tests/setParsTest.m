@@ -15,11 +15,11 @@ function testOutput(testCase)
     input = {"dim",3,"memTol",0.1,"q",2,"pdeg",1,"rbfdeg",2,"geom",'cube' ...
              "prob",'Poisson',"method",'FD',"mode",'fitted',"bcMode",'weak', ...
              "scaling",1,"display",1,"mvCentres",0,"psi",'bmp',"phi",'phs',...
-             "ep",3,"del",0.4,"P",15,"N",300,"extCoeff",0.4,"cppOn",0,"debug",0};
+             "ep",3,"del",0.4,"P",15,"N",300,"extCoeff",0.4,"cppOn",0,"debug",0,"parOn",0};
     pars.dim = 3; pars.geom = 'cube'; pars.prob = 'Poisson'; pars.method = 'FD'; pars.mode = 'fitted';     
     pars.bcMode = 'weak'; pars.scaling = 1; pars.display = 1; pars.mvCentres = 0; pars.psi = 'bmp';                    
     pars.phi = 'phs'; pars.pdeg = 1; pars.ep = 3; pars.memTol = 0.1; pars.del = 0.4; pars.rbfdeg = 2;     
-    pars.P = 15; pars.N = 300; pars.extCoeff = 0.4; pars.q = 2; pars.ep = 3; pars.cppOn = 0; pars.debug = 0;
+    pars.P = 15; pars.N = 300; pars.extCoeff = 0.4; pars.q = 2; pars.ep = 3; pars.cppOn = 0; pars.debug = 0; pars.parOn = 0;
     parsTest = setPars(input{:});
     verifyEqual(testCase,parsTest,pars);
 end
@@ -50,6 +50,7 @@ function testInputsType2(testCase)
     input{21} = {"extCoeff",0};
     input{22} = {"cppOn",0.1};
     input{23} = {"debug",'yes'};
+    input{24} = {"parOn",1.2};
     for i = 1:length(input)
         verifyError(testCase,@() callWithOutput(input{i}),"setPars:IncorrectType");
     end
