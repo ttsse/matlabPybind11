@@ -1,5 +1,6 @@
 src/cppFuncs/example.cpp
 cppFuncs.*
+armaFuncs.*
 *.o
 *.asv
 *.fig
@@ -8,3 +9,4 @@ build/
 rbfdiff/
 Makefile
 src/experiments/*.mat
+src/armadillo/build/
