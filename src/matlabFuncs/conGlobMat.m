@@ -33,56 +33,80 @@ function [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch)
     if ~strcmp(pars.prob,'Poisson')
         error("conGlobMat: Requested problem is not currently implemented")
     end
-
     xe = dataY.nodes;
     xc = dataX.nodes;
     if strcmp(pars.method,'FD')
         relXc = unique(ptch); % stencil centres that are used directly
+        %
+        % Constructing global LS-RBF-FD approximation to evaluation and Laplace operators M x N
+        %
         Eglobal = spalloc(pars.M,pars.N,pars.M*pars.n);
         Lglobal = spalloc(pars.M,pars.N,pars.M*pars.n);
-        [idX,~] = knnsearch(xc,xc(relXc,:),'K',pars.n);
-        [~,id1] = ismember(ptch,relXc);
         for i = 1:length(relXc)
-            xcLoc = xc(idX(i,:),:); % stencil
+            [idX,~] = knnsearch(xc,xc(relXc(i),:),'K',pars.n);
+            xcLoc = xc(idX,:); % stencil
             Psi = RBFInterpMat(pars.phi,pars.pdeg,pars.ep,xcLoc,xcLoc(1,:),max(sqrt(sum((xcLoc-xcLoc(1,:)).^2,2))));
             idY = find(ptch==relXc(i));
             E = RBFDiffMat(0,Psi,xe(idY,:));
             L = RBFDiffMat(1.5,Psi,xe(idY,:));
             
-            Eglobal(idY(i,:),idX(i,:)) = E + Eglobal(idY(i,:),idX(i,:));
-            Lglobal(idY(i,:),idX(i,:)) = L + Lglobal(idY(i,:),idX(i,:));
+            Eglobal(idY,idX) = E + Eglobal(idY,idX);
+            Lglobal(idY,idX) = L + Lglobal(idY,idX);
         end
         L = Lglobal(dataY.inner,:);
         B = Eglobal(dataY.bnd,:);
+
+        % relXc = unique(ptch); % stencil centres that are used directly
+        % % Construct cell arrays including row / column entry information
+        % idX = num2cell(knnsearch(xc,xc(relXc,:),'K',pars.n),2); [~,evalStencil] = ismember(ptch,relXc);
+        % idY = accumarray(evalStencil,(1:numel(evalStencil))',[size(idX,1) 1], @(x){x});
+        % % Initialise index and value cell arrays used for sparse assembly
+        % iRow = cell(pars.n,1); iCol = cell(pars.n,1); 
+        % Eval = cell(pars.n,1);  Lval = cell(pars.n,1);
+        % for i = 1:length(relXc)
+        %     xcLoc = xc(idX{i},:); % stencil
+        %     Psi = RBFInterpMat(pars.phi,pars.pdeg,pars.ep,xcLoc,xcLoc(1,:),max(sqrt(sum((xcLoc-xcLoc(1,:)).^2,2))));
+        %     E = RBFDiffMat(0,Psi,xe(idY{i},:));
+        %     L = RBFDiffMat(1.5,Psi,xe(idY{i},:));
+        % 
+        %     [cc, rr] = meshgrid(idX{i},idY{i});
+        %     iRow{i} = rr(:); iCol{i} = cc(:); 
+        %     Eval{i} = E(:); Lval{i} = L(:);
+        % end
+        % iRow = vertcat(iRow{:}); iCol = vertcat(iCol{:});
+        % Eval = vertcat(Eval{:}); Lval = vertcat(Lval{:});
+        % Eglobal = sparse(iRow, iCol, Eval, pars.M, pars.N);
+        % Lglobal = sparse(iRow, iCol, Lval, pars.M, pars.N);
+        % L = Lglobal(dataY.inner,:);
+        % B = Eglobal(dataY.bnd,:);
     else
         dim = size(ptch.C,2);
         P = length(ptch.R);
         [w] = weights(pars.psi,1.5,ptch);
-        % Initialise index and value cells usedfor sparse assembly
-        iE = cell(P,1); jE = cell(P,1); Eval = cell(P,1);
-        iL = cell(P,1); jL = cell(P,1); Lval = cell(P,1);
+        idX = {ptch.xe.globalId};
+        idY = {ptch.xc.globalId};
+        % Initialise index and value cell arrays used for sparse assembly
+        iRow = cell(P,1); iCol = cell(P,1); 
+        Eval = cell(P,1);  Lval = cell(P,1);
         for i = 1:P
             Psi = RBFInterpMat(pars.phi,pars.pdeg,pars.ep,ptch.xc(i).nodes,ptch.C(i,:),ptch.R(i));
             E = RBFDiffMat(0, Psi, ptch.xe(i).nodes);
             B = RBFDiffMat(1, Psi, ptch.xe(i).nodes);
             L = RBFDiffMat(1.5, Psi, ptch.xe(i).nodes);
-            rows = ptch.xe(i).globalId; cols = ptch.xc(i).globalId;
             Elocal = w{i}.f'.*E;
-            Llocal = zeros(length(rows), length(cols));
+            Llocal = zeros(length(idX{i}), length(idY{i}));
             for d = 1:dim
                 Llocal = Llocal + 2.*w{i}.grad{d}'.*B{d};
             end
             Llocal = Llocal + w{i}.L'.*E + w{i}.f'.*L;
-            [cc, rr] = meshgrid(cols, rows);
-            iE{i} = rr(:); jE{i} = cc(:); Eval{i} = Elocal(:);
-            iL{i} = rr(:); jL{i} = cc(:); Lval{i} = Llocal(:);
+            [cc, rr] = meshgrid(idY{i}, idX{i});
+            iRow{i} = rr(:); iCol{i} = cc(:); 
+            Eval{i} = Elocal(:); Lval{i} = Llocal(:);
         end
-        iE = vertcat(iE{:}); jE = vertcat(jE{:});
-        Eval = vertcat(Eval{:});
-        iL = vertcat(iL{:}); jL = vertcat(jL{:});
-        Lval = vertcat(Lval{:});
-        Eglobal = sparse(iE, jE, Eval, pars.M, pars.N);
-        Lglobal = sparse(iL, jL, Lval, pars.M, pars.N);
+        iRow = vertcat(iRow{:}); iCol = vertcat(iCol{:});
+        Eval = vertcat(Eval{:}); Lval = vertcat(Lval{:});
+        Eglobal = sparse(iRow, iCol, Eval, pars.M, pars.N);
+        Lglobal = sparse(iRow, iCol, Lval, pars.M, pars.N);
         L = Lglobal(dataY.inner,:);
         B = Eglobal(dataY.bnd,:);
     end

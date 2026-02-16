@@ -3,16 +3,14 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - eigen = 3.4.0 
-  - cmake = 4.2.2
-  - pybind11=3.0.1
-  - python = 3.9
-  - suitesparse = 7.10
-  - numpy = 1.26
-  - scipy = 1.10
-  - llvm-openmp
-  - libgomp
-  - openblas = 0.3.31
   - gcc = 10.4
   - gxx = 10.4 
   - make = 4.4.1 
+  - cmake = 4.2.2
+  - python = 3.9
+  - numpy = 1.26
+  - scipy = 1.10
+  - pybind11=3.0.1
+  - eigen = 3.4.0 
+  - suitesparse = 7.10
+  - openblas = 0.3.31
