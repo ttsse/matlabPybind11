@@ -1,4 +1,4 @@
-# matlabPythonCpp
+# matlabPybind11
 The present repository includes the mixed MATLAB and C++ implementation of two RBF based methods (RBF-PUM and RBF-FD). The methods are used to solve a Poisson problem and differential operators are constructed using available MATLAB software. The connection between MATLAB and C++ is facilitated through the pybind11 library and MATLAB Engine API for Python.
 
 The present implementation works for macOS-64, win-64 and linux-64 operating systems.
