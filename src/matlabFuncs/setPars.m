@@ -18,26 +18,26 @@ function pars = setPars(varargin)
         disp("        dim: Dimension of problem [ positive integer in range [ 1 | {2} | 3 ]")
         disp("       geom: Geometry to solve the problem in [ 'cube' of 'ball' {'ball'} ]")
         disp("       prob: Problem to solve [ {'Poisson'} ]")
-        disp("     method: Localised RBF numerical method to use [ 'PUM' | {'FD'} ]")
-        disp("       mode: Extra classification of method used [ {'collocation'} | 'fitted' | 'unfitted']")
+        disp("     method: Localised RBF numerical method to use [ {'PUM'} | 'FD' ]")
+        disp("       mode: Extra classification of method used [ 'collocation' | 'fitted' | {'unfitted'} ]")
         disp("     bcMode: Way to impose boundary conditions only relevant for fitted method [ 'strong' | {'weak'} ]")
         disp("    scaling: Flag to scale the LS problem [ 0 | {1} ]")
         disp("    display: Display flag [ 0 | {1} ]")
         disp("  mvCentres: Flag to move evaluation points on centre points, irrelevant for collocation [ 0 | {1} ]")
         disp("        psi: Compactly supported weight function for PUM [ 'bmp' | {'w2'} ]")
-        disp("        phi: Local RBF [ {'phs'} | 'mq' | 'gs' | 'rbfqr' | 'iq' ]")
+        disp("        phi: Local RBF [ 'phs' | 'mq' | 'gs' | {'rbfqr'} | 'iq' ]")
         disp("         ep: Shape parameter (smooth phi) [ positive scalar {0.1} ], order for 'phs' [ positive integer {3} ] ")
         disp("       pdeg: Degree of polynomial added to basis, p [ positive integer | 0 | {-1} ]")
         disp("     memTol: Tolerance used to return error when system is too large to solve with cpp library [ positive scalar {0.1} ]")
-        disp("        del: Relative overlap between patches [ positive scalar <= 1 {0.4} ]")
+        disp("        del: Relative overlap between patches [ positive scalar <= 1 {0.2} ]")
         disp("          q: Oversampling factor between nodes and evaluation points [ positive scalar >= 1 {3} ]")
-        disp("     rbfdeg: Polynomial degree localy supported by either patches or stencils in case of smooth basis [ positive integer ]")
-        disp("          P: Number of generated patches for PU methods [ positive integer {50} ]")
+        disp("     rbfdeg: Polynomial degree localy supported by either patches or stencils in case of smooth basis [ positive integer  {4} ]")
+        disp("          P: Number of generated patches for PU methods [ positive integer {25} ]")
         disp("          N: Global number of centre/node points for FD methods [ positive integer {200} ] ")
         disp("   extCoeff: Fraction of stencil used for the extension in unfitted RBF-FD method case [ positive scalar {0.5} ]")
         disp("      cppOn: Flag to choose whether to use generated c++ library [ 0 | {1} ]")
         disp("      debug: Debug flag specifically for cpp functions [ {0} | 1 ]")
-        disp("      parOn: Include parallelisation in implementation [ {0} | 1 ]")
+        disp("      parOn: Include parallelisation in implementation [ 0 | {1} ]")
         return
     end
     %
@@ -84,16 +84,16 @@ function pars = setPars(varargin)
     pars.pdeg = -1;     
     pars.ep = .1;
     pars.memTol = 0.1;                        
-    pars.del = 0.4;       
+    pars.del = 0.2;       
     pars.rbfdeg = 4;     
-    pars.P = 50; 
+    pars.P = 25; 
     pars.N = 200;
     pars.extCoeff = 0.5;
     pars.q = 3;                     
     pars.ep = 0.1;     
     pars.cppOn = 1;
-    pars.debug = 1;
-    pars.parOn = 0;
+    pars.debug = 0;
+    pars.parOn = 1;
 
     pin = 0; % Indicates that the second parameter pars is not present
     

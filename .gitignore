@@ -1,9 +1,10 @@
-src/experiments/
 src/cppFuncs/example.cpp
 cppFuncs.*
 *.o
 *.asv
+*.fig
 .vscode/**/*
 build/
 rbfdiff/
 Makefile
+src/experiments/*.mat

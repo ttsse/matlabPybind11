@@ -126,17 +126,21 @@ ENDIF()
 
 ### Include SPQR
 find_package(SPQR QUIET NAMES SPQR spqr)
-IF (SPQR_FOUND AND CHOLMOD_FOUND AND AMD_FOUND)
+IF (SPQR_FOUND AND COLAMD_FOUND AND AMD_FOUND AND CHOLMOD_FOUND AND CAMD_FOUND AND CCOLAMD_FOUND)
     message(STATUS "Found SPQR version: ${SPQR_VERSION}")
-    target_link_libraries(cppFuncs PRIVATE SuiteSparse::SPQR SuiteSparse::CHOLMOD SuiteSparse::AMD)
+    target_link_libraries(cppFuncs PRIVATE SuiteSparse::SPQR SuiteSparse::CHOLMOD SuiteSparse::AMD SuiteSparse::COLAMD SuiteSparse::CAMD SuiteSparse::CCOLAMD)
 ELSE()
-    message(STATUS "SPQR, CHOLMOD, or AMD not found by find_package, trying manual instead.")
+    message(STATUS "SPQR, CHOLAMD, or AMD not found by find_package, trying manual instead.")
     find_path(SPQR_INCLUDE_DIR
         NAMES "SuiteSparseQR.hpp"
         PATH_SUFFIXES include/suitesparse Library/include/suitesparse
     )
     find_library(SPQR_LIBRARY
         NAMES spqr SPQR
+        PATH_SUFFIXES lib Library/lib
+    )
+    find_library(COLAMD_LIBRARY
+        NAMES colamd COLAMD
         PATH_SUFFIXES lib Library/lib
     )
     find_library(CHOLMOD_LIBRARY
@@ -147,8 +151,16 @@ ELSE()
         NAMES amd AMD
         PATH_SUFFIXES lib Library/lib
     )
+    find_library(CAMD_LIBRARY
+        NAMES camd CAMD
+        PATH_SUFFIXES lib Library/lib
+    )
+    find_library(CCOLAMD_LIBRARY
+        NAMES ccholamd CCHOLAMD
+        PATH_SUFFIXES lib Library/lib
+    )
     target_include_directories(cppFuncs PRIVATE ${SPQR_INCLUDE_DIR})
-    target_link_libraries(cppFuncs PRIVATE ${SPQR_LIBRARY} ${CHOLMOD_LIBRARY} ${AMD_LIBRARY})
+    target_link_libraries(cppFuncs PRIVATE ${SPQR_LIBRARY} ${COLAMD_LIBRARY} ${AMD_LIBRARY} ${CHOLMOD_LIBRARY} ${CAMD_LIBRARY} ${CCOLAMD_LIBRARY})
 ENDIF()
 
 ### Remove and manually copy the built libary if crashes on build

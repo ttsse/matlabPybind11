@@ -40,6 +40,13 @@ if pars.cppOn == 1
         error("RBFsolver:IncorrectType","RBFsolver: If parameter cppOn = 1, function requires python modules cpp, np, sp. Run [cpp, np, sp] = importModules and then RBFsolver(pars,cpp,np,sp).");
     end
 end
+%
+% Initialize workers if pars.parOn
+%
+if pars.parOn && isempty(gcp('nocreate'))
+    parpool("processes", 8);
+end
+
 % 
 % Point number for RBF-FD method choice
 %
@@ -120,13 +127,11 @@ end
 %
 % Constructing global approximation to evaluation and Laplace operators
 %
-tic 
 if pars.parOn
     [L,B, Eglobal, Lglobal] = conGlobMatPar(pars,dataY,dataX,ptch);
 else
     [L,B, Eglobal, Lglobal] = conGlobMat(pars,dataY,dataX,ptch);
 end
-toc
 %
 % Manufactured solution to construct forcing and BC
 %
@@ -262,13 +267,15 @@ if pars.display
     %
     % Operator and solution l2 errors
     %
-    lapNumeric = Lglobal(dataY.inner,:)*ucExact;
-    evalNumeric = Eglobal(dataY.bnd,:)*ucExact;
-    laplaceError = norm(lapAnalytic-lapNumeric,2)/norm(lapAnalytic,2);
-    bndError = norm(evalNumeric-bndAnalytic,2)/(norm(bndAnalytic,2) + double(max(abs(bndAnalytic))==0));
-    disp(['RBFsolver: PDE error = ', num2str(l2Error)]);
-    disp(['RBFsolver: Boundary error = ', num2str(bndError)]);
-    disp(['RBFsolver: Laplace error = ', num2str(laplaceError)]);
+    if pars.debug
+        lapNumeric = Lglobal(dataY.inner,:)*ucExact;
+        evalNumeric = Eglobal(dataY.bnd,:)*ucExact;
+        laplaceError = norm(lapAnalytic-lapNumeric,2)/norm(lapAnalytic,2);
+        bndError = norm(evalNumeric-bndAnalytic,2)/(norm(bndAnalytic,2) + double(max(abs(bndAnalytic))==0));
+        disp(['RBFsolver: PDE error = ', num2str(l2Error)]);
+        disp(['RBFsolver: Boundary error = ', num2str(bndError)]);
+        disp(['RBFsolver: Laplace error = ', num2str(laplaceError)]);
+    end
 end
 %
 % Export results
