@@ -81,6 +81,9 @@ Test `cppFuncsTime.m`, is a function based test which outputs wall times for dif
 ## Experiments
 Experiments on performance and accuracy of the implementation can be found [here](src/experiments). These include performance tests of the solver with and without parallelisation (`RBFsolerParExp` which plots wall time against problem size) and convergence studies (`RBFsolverConvExp` which plots error against problem size).
 
+## Armadillo
+This branch includes implementation of pybind bindings for sove functions of the Armadillo library licensed under the [Apache License Versoin 2](https://gitlab.com/conradsnicta/armadillo-code/-/blob/15.2.x/LICENSE.txt). To run a simple example follow the steps to create the shared library but while in the armadillo [directory](src\armadillo), then run script `armaEx.m` in matlab.
+
 ## References
 <a id="1">[1]</a> T. A. Davis, Algorithm 915: SuiteSparseQR: Multifrontal multithreaded rank-revealing sparse QR factorization, ACM Trans. on Mathematical Software, 38(1), 2011, pp. 8:1--8:22. https://doi.org/10.1145/2049662.2049670
 
