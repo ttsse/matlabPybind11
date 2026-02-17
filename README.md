@@ -12,7 +12,7 @@ MATLAB version R2023a is required, as well as the following toolboxes:
 
 The conda package manager is used to install the required libraries. (See https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). 
 ## Tools, libraries an relevant lisences
-The code used multiple libraries which can be seen in the *.yml files. Note that versions are chosen for cross compatibilit, including with MATLAB. We additionally list all packages and libraries here along with links to their respective lisence files: 
+The code used multiple libraries which can be seen in the *.yml files (all installed through a conda environmentby following the steps in the following sections). Note that versions are chosen for cross compatibilit, including with MATLAB. We additionally list all packages and libraries here along with links to their respective lisence files: 
  - gcc 10.4 - [GNU General Public License](https://gcc.gnu.org/onlinedocs/gcc-10.4.0/libstdc++/manual/manual/appendix_gpl.html)
  - gxx 10.4 - [GNU General Public License](https://gcc.gnu.org/onlinedocs/gcc-10.4.0/libstdc++/manual/manual/appendix_gpl.html)
  - make 4.4.1 - [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -29,7 +29,7 @@ Additionally we use the suitesparse 7.10 meta-package. This is a set of packages
 For Windows, Microsoft Visual Studio 2019 is also required, as well as the the Microsoft Visual C++ (MSVC) compiler toolset. (See https://code.visualstudio.com/docs/cpp/config-msvc).
 To create the required environment execute the following in the x64 Native Tools Command Prompt for VS:
 ```
-conda create --name TTSSE --file condaEnvWin.yml
+conda env create -f condaEnvWin.yml
 ```
 Next activate the environment:
 ```
@@ -38,7 +38,7 @@ conda activate TTSSE
 ## Linux and macOS
 For Linux or macOS execute the following in a terminal:
 ```
-conda create --name TTSSE --file condaEnvLinux.yml
+conda env create -f condaEnvLinux.yml
 ```
 Next activate the environment:
 ```
