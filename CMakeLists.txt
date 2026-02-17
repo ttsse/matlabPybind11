@@ -19,10 +19,18 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ### Initialize the project (C required for SuiteSparse)
 project(cppFuncs LANGUAGES CXX C)
 
-find_package(Python 3.9 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python 3 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 3.0.1 EXACT CONFIG REQUIRED)
 
 pybind11_add_module(cppFuncs SHARED src/cppFuncs/bindings.cpp src/cppFuncs/solvers.cpp src/cppFuncs/funcs.hpp)
+
+### Necessary for macOS. See https://pybind11.readthedocs.io/en/stable/compiling.html
+IF (APPLE)
+    target_link_options(cppFuncs PRIVATE
+        "-undefined"
+        "dynamic_lookup"
+    )   
+ENDIF()
 
 ### Include Eigen headers
 find_package(Eigen3 QUIET)

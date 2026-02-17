@@ -35,10 +35,19 @@ Next activate the environment:
 ```
 conda activate TTSSE
 ```
-## Linux and macOS
-For Linux or macOS execute the following in a terminal:
+## Linux
+For Linux execute the following in a terminal:
 ```
 conda env create -f condaEnvLinux.yml
+```
+Next activate the environment:
+```
+conda activate TTSSE
+```
+## macOS
+For Linux execute the following in a terminal:
+```
+conda env create -f condaEnvMac.yml
 ```
 Next activate the environment:
 ```
@@ -64,7 +73,7 @@ git clone https://github.com/elisabethl/rbfdiff.git
 Launch the MATLAB environment from a terminal and run `main`. This executes an example problem with given parameters set by `setPars()`. The example imports and uses the generated C++ library. This code solves the Poisson problem on a 2D circle and should give 4 figures with the points used for the discretisation, the analytical solution, the numerical solution, and the error. All tests and experiments should be executed in the same top/main directory.
 
 ## Tests
-MATLAB's unit testing framework is used to construct function tests for 3 of the functions used in this implementation, as well as the functions imported from the C++ generated library (see `cppFuncsTest.m`). They are generally tested for robustness to spurious input, expected ouptut and accuracy.  The tests are available in [files](/tests/). All unit tests can be executed from the main directory by first setting the paths through running `pathSet`in the command window and then `runtests("tests")`. If all tests pass, the following should be printed:
+MATLAB's unit testing framework is used to construct function tests for 3 of the functions used in this implementation, as well as the functions imported from the C++ generated library (see `cppFuncsTest.m`). They are generally tested for robustness to spurious input, expected ouptut and accuracy.  The tests are available in [files](/tests/). All unit tests can be executed from the main directory by first setting the paths through running `pathSet`in the command window and then `runtests("tests")`. If all tests pass, the following should be printed (variable testing time):
 ```
 Totals:
    13 Passed, 0 Failed, 0 Incomplete.
