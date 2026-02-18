@@ -12,4 +12,4 @@ dependencies:
   - scipy = 1.10
   - openblas = 0.3.31
   - clang = 19.1.7
-  - clang = 19.1.7
+  - clangxx = 19.1.7

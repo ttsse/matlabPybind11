@@ -16,20 +16,26 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 ### -fPIC flag (position independent code to build shared libraries)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+### Make sure clang is used on macOS
+IF (APPLE)
+    set(CMAKE_C_COMPILER "$ENV{CONDA_PREFIX}/bin/clang")
+    set(CMAKE_CXX_COMPILER "$ENV{CONDA_PREFIX}/bin/clang++")
+ENDIF()
+
 ### Initialize the project (C required for SuiteSparse)
 project(cppFuncs LANGUAGES CXX C)
 
 find_package(Python 3 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 3.0.1 EXACT CONFIG REQUIRED)
 
-pybind11_add_module(cppFuncs SHARED src/cppFuncs/bindings.cpp src/cppFuncs/solvers.cpp src/cppFuncs/funcs.hpp)
+pybind11_add_module(cppFuncs src/cppFuncs/bindings.cpp src/cppFuncs/solvers.cpp src/cppFuncs/funcs.hpp)
 
 ### Necessary for macOS. See https://pybind11.readthedocs.io/en/stable/compiling.html
 IF (APPLE)
     target_link_options(cppFuncs PRIVATE
         "-undefined"
         "dynamic_lookup"
-    )   
+    ) 
 ENDIF()
 
 ### Include Eigen headers
@@ -46,7 +52,7 @@ ELSE()
     target_include_directories(cppFuncs PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ENDIF()
 
-### Include OpenMP
+## Include OpenMP
 find_package(OpenMP QUIET COMPONENTS C CXX)
 IF (OpenMP_FOUND)
     message(STATUS "Found OpenMP")
@@ -85,6 +91,7 @@ ELSE()
     target_include_directories(cppFuncs PRIVATE ${SUITESPARSE_CONFIG_INCLUDE_DIR})
     target_link_libraries(cppFuncs PRIVATE ${SUITESPARSE_CONFIG_LIBRARY})
     set(SuiteSparse_config_FOUND TRUE)
+    message(STATUS "SuiteSparse_config found: ${SUITESPARSE_CONFIG_LIBRARY}")
 ENDIF()
 
 ### Include BLAS and LAPACK
@@ -93,6 +100,7 @@ find_path(SUITESPARSE_BLAS_DIR
          "SuiteSparseLAPACK.cmake"
     PATH_SUFFIXES Library/lib/cmake/SuiteSparse lib/cmake/SuiteSparse
 )
+set(BLA_VENDOR "OpenBLAS") # Look specifically for OpenBLAS installed in the conda env
 list(APPEND CMAKE_MODULE_PATH "${SUITESPARSE_BLAS_DIR}")
 include (  "${SUITESPARSE_BLAS_DIR}/SuiteSparseBLAS.cmake" )     # requires cmake 3.22
 include ( "${SUITESPARSE_BLAS_DIR}/SuiteSparseLAPACK.cmake" )   # requires cmake 3.22
@@ -147,26 +155,32 @@ ELSE()
         NAMES spqr SPQR
         PATH_SUFFIXES lib Library/lib
     )
+    message(STATUS "SPQR found: ${SPQR_LIBRARY}")
     find_library(COLAMD_LIBRARY
         NAMES colamd COLAMD
         PATH_SUFFIXES lib Library/lib
     )
+    message(STATUS "COLAMD found: ${COLAMD_LIBRARY}")
     find_library(CHOLMOD_LIBRARY
         NAMES cholmod CHOLMOD
         PATH_SUFFIXES lib Library/lib
     )
+    message(STATUS "CHOLMOD found: ${CHOLMOD_LIBRARY}")
     find_library(AMD_LIBRARY
         NAMES amd AMD
         PATH_SUFFIXES lib Library/lib
     )
+    message(STATUS "AMD found: ${AMD_LIBRARY}")
     find_library(CAMD_LIBRARY
         NAMES camd CAMD
         PATH_SUFFIXES lib Library/lib
     )
+    message(STATUS "CAMD found: ${CAMD_LIBRARY}")
     find_library(CCOLAMD_LIBRARY
-        NAMES ccholamd CCHOLAMD
+        NAMES ccolamd CCHOLAMD
         PATH_SUFFIXES lib Library/lib
     )
+    message(STATUS "CCOLAMD found: ${CCOLAMD_LIBRARY}")
     target_include_directories(cppFuncs PRIVATE ${SPQR_INCLUDE_DIR})
     target_link_libraries(cppFuncs PRIVATE ${SPQR_LIBRARY} ${COLAMD_LIBRARY} ${AMD_LIBRARY} ${CHOLMOD_LIBRARY} ${CAMD_LIBRARY} ${CCOLAMD_LIBRARY})
 ENDIF()
