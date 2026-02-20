@@ -13,4 +13,4 @@ close all;
 pathSet;
 [cpp, np, sp] = importModules;
 pars = setPars;
-results = RBFsolver(pars, cpp, np, sp);
+results = RBFsolver(pars);
