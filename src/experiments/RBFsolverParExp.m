@@ -13,24 +13,28 @@ close all;
 %
 [cpp, np, sp] = importModules;
 delete(gcp('nocreate'));
-parpool("Processes",8);
+parpool;
 %
 % Parameter set
 %
-% N = [100 500 1000 1500 2000 2500 3000 3500 4000];
-% P = [10 50 100 150 200 250 300 350 400];
-
-N = [200 500 1500 4500 18000];
-P = [4 20 120 450 1800];
+N = [1000 3000 5000 7000 9000 11000];
+P = [80 190 300 410 520 630];
 for i = 1:length(N)
     %
     % Setup parameters
     %
-    parsFD = setPars("parOn",0,"geom",'ball',"N",N(i),"display",0,"debug",0,"rbfdeg",4,"method",'FD');   
-    parsPUM = setPars("parOn",0,"geom",'ball',"P",P(i),"display",0,"debug",0,"rbfdeg",4,"method",'PUM');
-    parsFDpar = setPars("parOn",1,"geom",'ball',"N",N(i),"display",0,"debug",0,"rbfdeg",4,"method",'FD');   
-    parsPUMpar = setPars("parOn",1,"geom",'ball',"P",P(i),"display",0,"debug",0,"rbfdeg",4,"method",'PUM');
-    n = nchoosek(parsPUMpar.rbfdeg+parsPUMpar.dim,parsPUMpar.dim);
+    parsFD = setPars("cppOn",1,"parOn",0,"geom",'ball',"N",N(i),"display",0,"debug",0,"rbfdeg",4,"method",'FD');   
+    parsPUM = setPars("cppOn",1,"parOn",0,"geom",'ball',"P",P(i),"display",0,"debug",0,"rbfdeg",4,"method",'PUM');
+    parsFDpar = setPars("cppOn",1,"parOn",1,"geom",'ball',"N",N(i),"display",0,"debug",0,"rbfdeg",4,"method",'FD');   
+    parsPUMpar = setPars("cppOn",1,"parOn",1,"geom",'ball',"P",P(i),"display",0,"debug",0,"rbfdeg",4,"method",'PUM');
+
+    %
+    % Get number of centre points by running once
+    %
+    resPUM = RBFsolver(parsPUMpar, cpp, np, sp);
+    resFD = RBFsolver(parsFDpar, cpp, np, sp);
+    N_PUM(i) = length(resPUM.u);
+    N_FD(i) = length(resFD.u);
     %
     % Save times to compute serial and parallel code
     %
@@ -43,20 +47,19 @@ end
 % Plot times against requested DOF
 %
 figure()
-plot(N, tRes.FD{1}, '-o', 'DisplayName', 'Serial');
+plot(N_FD, tRes.FD{1}, 'b-o', 'DisplayName', 'RBF-FD: Serial', 'LineWidth', 3,"MarkerSize",12);
 hold on;
-plot(N,tRes.FD{2}, '-o', 'DisplayName', 'Parallel (8 processes)');
-xlabel('N');
-ylabel('Wall time (seconds)');
-title("RBFsolver: RBF-FD method")
-legend show;
-grid on;
-figure()
-plot(P.*n, tRes.PUM{1}, '-o', 'DisplayName', 'Serial');
+plot(N_FD,tRes.FD{2}, 'r-o', 'DisplayName', 'RBF-FD: Parallel (8 processes)', 'LineWidth', 3,"MarkerSize",12);
+plot(N_PUM, tRes.PUM{1}, 'k--o', 'DisplayName', 'RBF-PUM: Serial', 'LineWidth', 3,"MarkerSize",12);
 hold on;
-plot(P.*n, tRes.PUM{2}, '-o', 'DisplayName', 'Parallel (8 processes)');
-xlabel('N');
-ylabel('Wall time (seconds)');
-title("RBFsolver: RBF-PU method")
-legend show;
+plot(N_PUM, tRes.PUM{2}, 'g--o', 'DisplayName', 'RBF-PUM: Parallel (8 processes)', 'LineWidth', 3,"MarkerSize",12);
+g = gca;
+g.FontSize = 24;
+xlim([0,12000]);
+ylim([0, 25])
+xlabel('N','FontSize',32);
+ylabel('wall time (seconds)','FontSize',32);
+l = legend;
+l.Location = "northwest";
+l.FontSize = 24;
 grid on;

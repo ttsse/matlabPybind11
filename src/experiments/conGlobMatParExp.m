@@ -15,17 +15,17 @@ close all;
 % Initialise workers
 %
 delete(gcp('nocreate'));
-p = parpool("Processes",8);
+p = parpool;
 %
 % Parameter set
 %
-N = [100 500 1000 1500 2000 2500 3000 3500 4000];
-P = [10 50 100 150 200 250 300 350 400];
+N = [1000 3000 5000 7000 9000 11000];
+P = [80 190 300 410 520 630];
 for i = 1:length(N)
     %
     % Setup RBF-FD parameters
     %
-    parsFD = setPars("geom",'ball',"N",N(i),"display",0,"debug",0,"rbfdeg",3,"method","FD");
+    parsFD = setPars("geom",'ball',"N",N(i),"display",0,"debug",0,"rbfdeg",4,"method","FD");
     n = nchoosek(parsFD.rbfdeg+parsFD.dim,parsFD.dim);
     C = zeros(1,parsFD.dim);
     R = 1;
@@ -45,7 +45,7 @@ for i = 1:length(N)
     %
     % Setup RBF-PUM parameters
     %
-    parsPUM = setPars("geom",'ball',"P",P(i),"display",0,"debug",0,"rbfdeg",3,"method",'PUM');
+    parsPUM = setPars("geom",'ball',"P",P(i),"display",0,"debug",0,"rbfdeg",4,"method",'PUM');
     n = nchoosek(parsPUM.rbfdeg+parsPUM.dim,parsPUM.dim);
     C = zeros(1,parsPUM.dim);
     R = 1;
@@ -72,20 +72,19 @@ end
 % Plot times against DOF
 %
 figure()
-plot(resFD(:,1), resFD(:,2), '-o', 'DisplayName', 'Serial');
+plot(resFD(:,1), resFD(:,2), 'r-o', 'LineWidth', 3,'DisplayName', 'RBF-FD: Serial',"MarkerSize",12);
 hold on;
-plot(resParFD(:,1), resParFD(:,2), '-o', 'DisplayName', 'Parallel (8 processes)');
-xlabel('N');
-ylabel('Wall time (seconds)');
-title("conGlobMat: RBF-FD matrices")
-legend show;
-grid on;
-figure()
-plot(resPUM(:,1), resPUM(:,2), '-o', 'DisplayName', 'Serial');
+plot(resParFD(:,1), resParFD(:,2), 'b-o', 'LineWidth', 3, 'DisplayName', 'RBF-FD: Parallel (8 processes)',"MarkerSize",12);
+plot(resPUM(:,1), resPUM(:,2), 'k--o', 'LineWidth', 3, 'DisplayName', 'RBF-PUM: Serial',"MarkerSize",12);
 hold on;
-plot(resParPUM(:,1), resParPUM(:,2), '-o', 'DisplayName', 'Parallel (8 processes)');
-xlabel('N');
-ylabel('Wall time (seconds)');
-title("conGlobMat: RBF-PUM matrices")
-legend show;
+plot(resParPUM(:,1), resParPUM(:,2), 'g--o', 'LineWidth', 3, 'DisplayName', 'RBF-PUM: Parallel (8 processes)',"MarkerSize",12);
+g = gca;
+g.FontSize = 24;
+xlim([0,11000]);
+ylim([0, 25])
+xlabel('N','FontSize',32);
+ylabel('wall time (seconds)','FontSize',32);
+l = legend;
+l.Location = "northwest";
+l.FontSize = 24;
 grid on;

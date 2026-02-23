@@ -12,23 +12,23 @@ close all;
 %
 [cpp, np, sp] = importModules;
 delete(gcp('nocreate'));
-parpool("Processes",8);
+parpool;
 %
 % Parameter set
 %
-N = [200 500 1500 4500 18000];
-P = [4 20 120 450 1800];
+N = [1000 3000 5000 7000 9000 11000];
+P = [80 190 300 410 520 630];
 for i = 1:length(N)
     %
     % Setup parameters
     %
-    parsFD = setPars("parOn",1,"geom",'ball',"N",N(i),"display",0,"debug",0, ...
-                     "phi",'phs',"pdeg",4,"ep",3,"method",'FD');   
-    parsPUM = setPars("parOn",1,"geom",'ball',"P",P(i),"display",0,"debug",0,...
-                      "rbfdeg",4,"method",'PUM');
+    parsFD = setPars("cppOn",1,"parOn",1,"geom",'ball',"N",N(i),"display",0,"debug",0, ...
+                     "rbfdeg",4,"method",'FD',"mode",'unfitted');   
+    parsPUM = setPars("cppOn",1,"parOn",1,"geom",'ball',"P",P(i),"display",0,"debug",0,...
+                      "rbfdeg",4,"method",'PUM',"mode",'unfitted');
     n = nchoosek(parsPUM.rbfdeg+parsPUM.dim,parsPUM.dim);
     %
-    % Save times to compute serial and parallel code
+    % Save results
     %
     Res.PUM{i} = RBFsolver(parsPUM, cpp, np, sp);
     Res.FD{i} = RBFsolver(parsFD, cpp, np, sp);
@@ -41,30 +41,32 @@ errorPUM = [tmp.l2Error];
 tmp = [Res.FD{:}];
 errorFD = [tmp.l2Error];
 tmp = [Res.PUM{:}];
-hPUM = [tmp.h];
+N_PUM = arrayfun(@(s) length(s.u),tmp);
 tmp = [Res.FD{:}];
-hFD = [tmp.h];
+N_FD = arrayfun(@(s) length(s.u),tmp);
 %
 % Plot convergence for both methods
 %
 figure();
-c = colormap("turbo");
-nameFD = ['unfitted RBF-FD,    order = ',num2str(pFD(1))];
-namePUM = ['unfitted RBF-PUM, order = ',num2str(pPUM(1))];
-loglog(hFD,errorFD,'r-o',"LineWidth",2,'DisplayName',nameFD); hold on
-loglog(hPUM,errorPUM,'b-o',"LineWidth",2,'DisplayName',namePUM); 
+pFD = polyfit(log(N_FD),log(errorFD),1);
+pPUM = polyfit(log(N_PUM),log(errorPUM),1);
+nameFD =  ['RBF-FD',',    slope = ',num2str(pFD(1))];
+namePUM = ['RBF-PUM',   ', slope = ',num2str(pPUM(1))];
+loglog(N_FD,errorFD,'r-o',"LineWidth",3,'DisplayName',nameFD,"MarkerSize",12); hold on
+loglog(N_PUM,errorPUM,'b-o',"LineWidth",3,'DisplayName',namePUM,"MarkerSize",12); 
 fig = gca;
-fig.FontSize = 16;
+fig.FontSize = 24;
 fig.XMinorGrid = "off";
 fig.YMinorGrid = "off";
-fig.XLim = [0.01 1];
-fig.YLim = [1e-7 1];
-pFD = polyfit(log(hFD),log(errorFD),1);
-pPUM = polyfit(log(hPUM),log(errorPUM),1);
+fig.XLim = [8e2 2e4];
+fig.YLim = [1e-6 3e-3];
+xlabel('N','FontSize',32);
+ylabel('error','FontSize',32);
 l = legend;
-l.Location = "southeast";
-l.FontSize = 18;
-plot(hFD,(hFD.^pFD(1)).*exp(pFD(2)),'r--','HandleVisibility','off','LineWidth',1.5)
-plot(hPUM,(hPUM.^pPUM(1)).*exp(pPUM(2)),'b--','HandleVisibility','off','LineWidth',1.5)
+l.Location = "southwest";
+l.FontSize = 24;
+plot(N_FD,(N_FD.^pFD(1)).*exp(pFD(2)),'r--','HandleVisibility','off','LineWidth',2)
+plot(N_PUM,(N_PUM.^pPUM(1)).*exp(pPUM(2)),'b--','HandleVisibility','off','LineWidth',2)
 grid on
+grid minor
 

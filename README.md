@@ -12,7 +12,7 @@ MATLAB version R2023a is required, as well as the following toolboxes:
 
 The conda package manager is used to install the required libraries. (See https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). 
 ## Tools, libraries an relevant lisences
-The code used multiple libraries which can be seen in the *.yml files (all installed through a conda environmentby following the steps in the following sections). Note that versions are chosen for cross compatibilit, including with MATLAB. We additionally list all packages and libraries here along with links to their respective lisence files: 
+The code used multiple libraries which can be seen in the *.yml files (all installed through a conda environment by following the steps in the following sections). Note that versions are chosen for cross compatibility, including with MATLAB. We additionally list all packages and libraries here along with links to their respective lisence files: 
  - gcc 10.4 - [GNU General Public License](https://gcc.gnu.org/onlinedocs/gcc-10.4.0/libstdc++/manual/manual/appendix_gpl.html)
  - gxx 10.4 - [GNU General Public License](https://gcc.gnu.org/onlinedocs/gcc-10.4.0/libstdc++/manual/manual/appendix_gpl.html)
  - clang 19.1.7 - [Apache License v2.0 with LLVM Exceptions](https://github.com/llvm/llvm-project/blob/main/LICENSE.TXT)

@@ -11,7 +11,7 @@ close all;
 
 pathSet; 
 [cpp, np, sp] = importModules; % Import all required modules
-N = 1000; q = 2; M = q*N;
+N = 3000; q = 2; M = q*N;
 Adense = rand(N,N);
 Asp = sprand(N,N,0.05,0.1);
 b = rand(N,1);

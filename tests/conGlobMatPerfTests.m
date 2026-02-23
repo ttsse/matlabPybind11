@@ -43,7 +43,7 @@ parsPUM.N = size(dataXPUM.nodes,1);
 % Initialise workers
 %
 delete(gcp('nocreate'));
-p = parpool("Processes",8);
+p = parpool;
 
 %% Serial compute global matrices RBF-PUM
 conGlobMat(parsPUM,dataYPUM,dataXPUM,ptchPUM);

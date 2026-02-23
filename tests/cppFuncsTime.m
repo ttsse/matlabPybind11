@@ -21,31 +21,6 @@ function [tOut] = cppFuncsTime(N,q,memTol,display)
 pathSet; 
 [cpp, np, sp] = importModules; % Import all required modules
 M = N*q;
-
-%
-% Solve dense square system
-%
-A = rand(N,N);
-b = rand(N,1);
-checkMemory(A,b,memTol);
-
-tic
-xDenseCpp = double(cpp.denseSolve(np.array(A),np.array(b),1));
-tCpp = toc;
-
-tic
-xDenseMat = A\b;
-tMatlab = toc;
-
-if display
-    tCppInFunc = xDenseCpp(end);
-    xDenseCpp(end) = [];
-    disp(['cppFuncTest: Eigen solve time for dense system in function: ', num2str(tCppInFunc), 's'])
-    disp(['cppFuncTest: Eigen solve time for dense system: ', num2str(tCpp), 's'])
-    disp(['cppFuncTest: Matlab solve time for dense system: ', num2str(tMatlab), 's'])
-    disp(' ');
-end
-tOut.dense = [tCppInFunc, tCpp, tMatlab];
 %
 % Solve dense LS system
 %
@@ -61,8 +36,8 @@ tic
 xDenseLSmat = A\b;
 tMatlab = toc;
 
+tCppInFunc = xDenseLScpp(end);
 if display
-    tCppInFunc = xDenseLScpp(end);
     xDenseLScpp(end) = [];
     disp(['cppFuncTest: Eigen solve time for dense LS system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for dense LS system: ', num2str(tCpp), 's'])
@@ -70,6 +45,31 @@ if display
     disp(' ');
 end
 tOut.denseLS = [tCppInFunc, tCpp, tMatlab];
+%
+% Solve dense square system
+%
+A = rand(N,N);
+b = rand(N,1);
+checkMemory(A,b,memTol);
+
+tic
+xDenseCpp = double(cpp.denseSolve(np.array(A),np.array(b),1));
+tCpp = toc;
+
+tic
+xDenseMat = A\b;
+tMatlab = toc;
+
+tCppInFunc = xDenseCpp(end);
+if display
+    xDenseCpp(end) = [];
+    disp(['cppFuncTest: Eigen solve time for dense system in function: ', num2str(tCppInFunc), 's'])
+    disp(['cppFuncTest: Eigen solve time for dense system: ', num2str(tCpp), 's'])
+    disp(['cppFuncTest: Matlab solve time for dense system: ', num2str(tMatlab), 's'])
+    disp(' ');
+end
+tOut.dense = [tCppInFunc, tCpp, tMatlab];
+
 %
 % Solve sparse system
 %
@@ -93,8 +93,8 @@ tic
 xSparseMat = A\b;
 tMatlab = toc;
 
+tCppInFunc = xSparseCpp(end);
 if display
-    tCppInFunc = xSparseCpp(end);
     xSparseCpp(end) = [];
     disp(['cppFuncTest: Eigen solve time for sparse system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for sparse system: ', num2str(tCpp), 's'])
@@ -125,8 +125,8 @@ tic
 xSparseLSmat = A\b;
 tMatlab = toc;
 
+tCppInFunc = xSparseLScpp(end);
 if display
-    tCppInFunc = xSparseLScpp(end);
     xSparseLScpp(end) = [];
     disp(['cppFuncTest: Eigen solve time for sparse LS system in function: ', num2str(tCppInFunc), 's'])
     disp(['cppFuncTest: Eigen solve time for sparse LS system: ', num2str(tCpp), 's'])

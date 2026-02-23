@@ -52,7 +52,7 @@ end
 %
 if strcmp(pars.method,'FD')
     if pars.pdeg == -1
-        n = nchoosek(pars.rbfdeg+pars.dim-1,pars.dim); % Stencil size in smooth RBF case
+        n = nchoosek(pars.rbfdeg+pars.dim,pars.dim); % Stencil size in smooth RBF case
     else
         n = 2*nchoosek(pars.pdeg+pars.dim,pars.dim);   % Stencil size in phs + poly case
     end
